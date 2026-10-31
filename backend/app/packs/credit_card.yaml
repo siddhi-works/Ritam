@@ -1,0 +1,179 @@
+# Credit-card attributes.
+# value_type: money | percent | count | text | days | date
+# importance: 1 (minor) to 5 (critical)
+# mitc_required: listed in the MITC annex of RBI's Credit Card and Debit Card Directions, 2022
+# keywords: used by the absence check before anything is reported as missing
+pack: credit_card
+label: Credit card
+subject: an Indian credit card
+issuer: the bank
+terms_doc: MITC
+prompt_version: cc-extract-v2
+notice_rules: true
+extract_notes:
+  - >-
+    Keep similar charges apart: the dynamic currency conversion (DCC) markup is `dcc_markup`, not
+    `forex_markup` (the foreign currency transaction fee). When a value changes "to X from Y", extract
+    X as the claim; mention Y in `conditions` (e.g. "previously 1.5%").
+attributes:
+  - key: joining_fee
+    label: Joining fee
+    category: fees
+    value_type: money
+    importance: 4
+    mitc_required: true
+    keywords: [joining fee, first year fee, one-time fee, enrolment fee]
+  - key: annual_fee
+    label: Annual / renewal fee
+    category: fees
+    value_type: money
+    importance: 5
+    mitc_required: true
+    keywords: [annual fee, renewal fee, annual membership fee, yearly fee]
+  - key: annual_fee_waiver
+    label: Annual fee waiver condition
+    category: fees
+    value_type: money
+    importance: 4
+    mitc_required: false
+    keywords: [fee waiver, waived on spends, renewal fee waiver, annual spend]
+  - key: finance_charge
+    label: Interest / finance charge
+    category: interest
+    value_type: percent
+    importance: 5
+    mitc_required: true
+    keywords: [finance charge, interest rate, monthly percentage rate, annual percentage rate, apr, interest free period]
+  - key: interest_free_period
+    label: Interest-free (grace) period
+    category: interest
+    value_type: days
+    importance: 4
+    mitc_required: true
+    keywords: [interest free period, grace period, free credit period]
+  - key: late_payment_fee
+    label: Late payment charges
+    category: fees
+    value_type: money
+    importance: 5
+    mitc_required: true
+    keywords: [late payment, late fee, late payment charges, payment due date]
+  - key: minimum_amount_due
+    label: Minimum amount due
+    category: billing
+    value_type: percent
+    importance: 4
+    mitc_required: true
+    keywords: [minimum amount due, minimum due, mad]
+  - key: cash_advance_fee
+    label: Cash advance / withdrawal fee
+    category: fees
+    value_type: money
+    importance: 3
+    mitc_required: true
+    keywords: [cash advance, cash withdrawal, atm withdrawal fee]
+  - key: forex_markup
+    label: Foreign currency markup
+    category: fees
+    value_type: percent
+    importance: 4
+    mitc_required: true
+    keywords: [foreign currency markup, forex markup, cross currency, foreign transaction fee, currency conversion]
+  - key: dcc_markup
+    label: Dynamic currency conversion (DCC) markup
+    category: fees
+    value_type: percent
+    importance: 3
+    mitc_required: false
+    keywords: [dynamic currency conversion, dcc, dcc markup, transactions in indian currency abroad]
+  - key: overlimit_fee
+    label: Over-limit charges
+    category: fees
+    value_type: money
+    importance: 2
+    mitc_required: true
+    keywords: [over limit, overlimit, over-limit charges]
+  - key: reward_rate
+    label: Reward / cashback rate
+    category: rewards
+    value_type: percent
+    importance: 4
+    mitc_required: false
+    keywords: [reward points, cashback, reward rate, earn points, per rs 100, per rs 150]
+  - key: reward_cap
+    label: Reward or cashback cap
+    category: rewards
+    value_type: money
+    importance: 4
+    mitc_required: false
+    keywords: [capped at, maximum cashback, cap of, maximum reward points, per statement cycle]
+  - key: reward_exclusions
+    label: Reward exclusions (rent, wallet, fuel, utilities)
+    category: rewards
+    value_type: text
+    importance: 3
+    mitc_required: false
+    keywords: [excluded, not eligible, exclusions, rent, wallet load, fuel, utility, government]
+  - key: domestic_lounge_visits
+    label: Domestic lounge visits
+    category: travel
+    value_type: count
+    importance: 3
+    mitc_required: false
+    keywords: [domestic lounge, airport lounge, lounge access, complimentary lounge]
+  - key: international_lounge_visits
+    label: International lounge visits
+    category: travel
+    value_type: count
+    importance: 3
+    mitc_required: false
+    keywords: [international lounge, priority pass, lounge outside india]
+  - key: lounge_spend_condition
+    label: Spend required to unlock lounge access
+    category: travel
+    value_type: money
+    importance: 3
+    mitc_required: false
+    keywords: [spend of, spends in the previous quarter, to be eligible for lounge, milestone]
+  - key: fuel_surcharge_waiver
+    label: Fuel surcharge waiver
+    category: fees
+    value_type: percent
+    importance: 2
+    mitc_required: false
+    keywords: [fuel surcharge, surcharge waiver]
+  - key: rent_payment_fee
+    label: Rent payment fee
+    category: fees
+    value_type: percent
+    importance: 3
+    mitc_required: false
+    keywords: [rent payment, rental transactions, rent fee]
+  - key: billing_cycle
+    label: Billing cycle / statement date
+    category: billing
+    value_type: text
+    importance: 2
+    mitc_required: true
+    keywords: [billing cycle, statement date, billing statement]
+  - key: card_closure
+    label: Card closure process
+    category: rights
+    value_type: text
+    importance: 4
+    mitc_required: true
+    keywords: [closure, close the card, cancellation, termination, closure request]
+  - key: notice_period
+    label: Notice period for changes in terms
+    category: rights
+    value_type: days
+    importance: 5
+    mitc_required: true
+    keywords: [one month notice, prior notice, notice of change, changes in charges, 30 days notice]
+  - key: grievance_redressal
+    label: Grievance redressal / nodal officer
+    category: rights
+    value_type: text
+    importance: 4
+    mitc_required: true
+    keywords: [grievance, nodal officer, principal nodal officer, ombudsman, complaint]

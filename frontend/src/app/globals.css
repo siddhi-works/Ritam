@@ -1,0 +1,125 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Design tokens. The highlighter colour is reserved for verified quotes. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-plex-sans), var(--font-plex-deva), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-plex-serif), ui-serif, Georgia, serif;
+
+  --color-ink: #1b2430;
+  --color-paper: #f7f8fa;
+  --color-rule: #d5dae1;
+  --color-mute: #5b6573;
+  --color-highlight: #f3e25b;
+  --color-sourced: #0f6b5c;
+  --color-sourced-soft: #e3f1ee;
+  --color-ai: #4b3fa8;
+  --color-ai-soft: #ecebf8;
+  --color-uncertain: #8a5a00;
+  --color-uncertain-soft: #f8f0df;
+
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 6px);
+}
+
+:root {
+  --radius: 0.375rem;
+  --background: #f7f8fa;
+  --foreground: #1b2430;
+  --card: #ffffff;
+  --card-foreground: #1b2430;
+  --popover: #ffffff;
+  --popover-foreground: #1b2430;
+  --primary: #1b2430;
+  --primary-foreground: #ffffff;
+  --secondary: #eef1f5;
+  --secondary-foreground: #1b2430;
+  --muted: #eef1f5;
+  --muted-foreground: #5b6573;
+  --accent: #eef1f5;
+  --accent-foreground: #1b2430;
+  --destructive: #b42318;
+  --border: #d5dae1;
+  --input: #c3cad4;
+  --ring: #1f4fd1;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "kern" 1;
+    line-height: 1.55;
+  }
+  /* Visible keyboard focus (WCAG 2.4.7). */
+  :focus-visible {
+    outline: 3px solid #1f4fd1;
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Marker stroke behind verified quotes. */
+.mark-verified {
+  background: linear-gradient(
+    to bottom,
+    transparent 0.18em,
+    color-mix(in srgb, var(--color-highlight) 85%, transparent) 0.18em,
+    color-mix(in srgb, var(--color-highlight) 85%, transparent) calc(100% - 0.08em),
+    transparent calc(100% - 0.08em)
+  );
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 0 0.12em;
+  color: var(--color-ink);
+}
+
+/* Hero highlight, drawn once on load. */
+@media (prefers-reduced-motion: no-preference) {
+  .mark-draw {
+    background-size: 0% 100%;
+    background-repeat: no-repeat;
+    animation: mark-draw 900ms cubic-bezier(0.2, 0.7, 0.2, 1) 450ms forwards;
+  }
+  @keyframes mark-draw {
+    to {
+      background-size: 100% 100%;
+    }
+  }
+}

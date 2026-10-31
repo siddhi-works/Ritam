@@ -1,0 +1,48 @@
+# Render Blueprint for the API. Free plan: 512 MB, 750 instance hours a month, so keep this the
+# only free service (24/7 = 744 h). `sync: false` values are entered when the Blueprint is created.
+services:
+  - type: web
+    name: ritam-api
+    runtime: docker
+    plan: free
+    region: virginia            # closest to Neon (aws-us-east-1); pick Ohio if Virginia is unavailable
+    rootDir: backend            # only changes under backend/ trigger a deploy
+    dockerfilePath: ./backend/Dockerfile   # Blueprint spec: relative to the repo root, not rootDir
+    dockerContext: ./backend
+    healthCheckPath: /livez     # never touches the database (Neon free compute-hour budget)
+    autoDeployTrigger: checksPass  # deploy only after GitHub CI passes (spec replaces autoDeploy)
+    envVars:
+      - key: ENV
+        value: prod
+      - key: LOG_LEVEL
+        value: INFO
+      - key: REDIS_URL          # empty = in-process jobs (no Redis on the free tier)
+        value: ""
+      - key: RAW_STORE_DIR
+        value: /app/data/raw
+      - key: JS_FALLBACK        # no Chromium in 512 MB: render JavaScript pages via Jina Reader
+        value: jina
+      - key: INTERNAL_TOKEN     # shared with GitHub Actions secret RITAM_INTERNAL_TOKEN
+        generateValue: true
+      - key: CORS_ORIGIN_REGEX  # Vercel production + preview URLs of the "ritam" project
+        value: https://ritam[a-z0-9-]*\.vercel\.app
+      - key: DATABASE_URL       # Neon main branch, non-pooled string exactly as Neon shows it
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: MISTRAL_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: TAVILY_API_KEY  # optional: web search for source discovery
+        sync: false
+      - key: NEO4J_URI
+        sync: false
+      - key: NEO4J_USERNAME
+        sync: false
+      - key: NEO4J_PASSWORD
+        sync: false
+      - key: NEO4J_QUERY_API_URL
+        sync: false

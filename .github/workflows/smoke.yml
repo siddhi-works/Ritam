@@ -1,0 +1,34 @@
+# Every 6 hours, check the live site works; on failure, open or update an issue.
+name: Live smoke test
+on:
+  schedule:
+    - cron: "41 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  smoke:
+    if: vars.RITAM_API_URL != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check API and a demo audit
+        env: { API: "${{ vars.RITAM_API_URL }}" }
+        run: |
+          set -euo pipefail
+          curl -fsS --retry 4 --retry-delay 30 --max-time 120 "$API/livez"
+          curl -fsS --max-time 60 "$API/health" | tee health.json
+          python3 -c "import json;h=json.load(open('health.json'));assert h['components']['db']['status']=='ok', h"
+          curl -fsS --max-time 60 "$API/api/audits?demo_only=true" | tee demos.json
+          ID=$(python3 -c "import json;d=json.load(open('demos.json'));assert d,'no demo audits';print(d[0]['id'])")
+          curl -fsS --max-time 60 "$API/api/audits/$ID" | python3 -c "import json,sys;a=json.load(sys.stdin);assert a['findings'] and a['checklist'], 'demo audit has no findings/checklist'"
+      - name: Report failure
+        if: failure()
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          N=$(gh issue list --repo "$GITHUB_REPOSITORY" --label smoke-test --state open --json number -q '.[0].number')
+          MSG="Live smoke test failed at $(date -u +%FT%TZ). Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          if [ -n "$N" ]; then gh issue comment "$N" --repo "$GITHUB_REPOSITORY" --body "$MSG";
+          else gh label create smoke-test --repo "$GITHUB_REPOSITORY" --force >/dev/null; gh issue create --repo "$GITHUB_REPOSITORY" --title "Live demo smoke test failing" --label smoke-test --body "$MSG"; fi

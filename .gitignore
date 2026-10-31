@@ -1,0 +1,38 @@
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Data
+data/
+*.log
+
+# Neon
+.neon-project-id
+
+# Demo PDFs stay local; the manifest is committed
+demo-docs/*
+!demo-docs/MANIFEST.md
+!demo-docs/manifest.json
+
+# Local tooling and working notes
+.claude/
+.mcp.json
+skills-lock.json
+brief/
+research/
+docs/

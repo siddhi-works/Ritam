@@ -1,0 +1,75 @@
+[project]
+name = "ritam-api"
+version = "0.1.0"
+description = "Ritam: evidence-first information-gap auditor for Indian retail financial products"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.32",
+  "pydantic>=2.9",
+  "pydantic-settings>=2.6",
+  "sqlalchemy[asyncio]>=2.0.36",
+  "asyncpg>=0.30",
+  "alembic>=1.14",
+  "arq>=0.26",
+  "redis>=5.2",
+  "neo4j>=5.26",
+  "httpx>=0.28",
+  "sse-starlette>=2.1",
+  "python-multipart>=0.0.17",
+  # ingestion / analysis (used from B1 onward)
+  "trafilatura>=2.0",
+  "htmldate>=1.9",
+  "pypdf>=5.1",
+  "pdfplumber>=0.11",
+  "rapidfuzz>=3.10",
+  "datasketch>=1.6",
+  "pyyaml>=6.0",
+  "tzdata>=2024.1",  # IANA zones on Windows/slim images (quota day = Pacific time)
+]
+
+[project.optional-dependencies]
+browser = ["playwright>=1.49"]
+dev = [
+  "pytest>=8.3",
+  "pytest-asyncio>=0.24",
+  "respx>=0.21",
+  "fpdf2>=2.8",
+  "ruff>=0.8",
+  "mypy>=1.13",
+]
+
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.setuptools.package-data]
+"app.packs" = ["*.yaml"]
+"app.discovery" = ["*.yaml"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "ASYNC", "S"]
+# Line length is owned by `ruff format`; long user-facing strings are left intact.
+ignore = ["S101", "E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# Test data (sample bank text) reads better unwrapped.
+"tests/*" = ["E501", "S105", "S106"]  # fake tokens in tests are not secrets
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true

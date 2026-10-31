@@ -1,0 +1,17 @@
+# Aura Free pauses after 3 days without writes, so write once a day.
+name: Graph heartbeat
+on:
+  schedule:
+    - cron: "17 3 * * *"   # 08:47 IST daily
+  workflow_dispatch:
+
+jobs:
+  heartbeat:
+    if: vars.RITAM_API_URL != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: |
+          curl -fsS --retry 3 --retry-delay 30 --max-time 120 -X POST \
+            -H "X-Internal-Token: ${{ secrets.RITAM_INTERNAL_TOKEN }}" \
+            "${{ vars.RITAM_API_URL }}/internal/heartbeat"

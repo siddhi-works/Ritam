@@ -1,0 +1,79 @@
+# Known sources for popular cards and schemes, checked on 1 Nov 2026.
+# Re-check with: python -m app.discovery.check
+# kind: official_page | mitc_pdf | kfs_pdf | bank_notice | aggregator | news | rbi_rule
+cards:
+  - id: hdfc-millennia
+    bank: HDFC Bank
+    name: HDFC Bank Millennia credit card
+    aliases: [hdfc millennia, millennia hdfc, hdfc millenia]
+    sources:
+      - {url: "https://www.hdfc.bank.in/credit-cards/millennia-credit-card", kind: official_page, title: "HDFC Bank: Millennia card page"}
+      - {url: "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/millennia-credit-card/hdfc-bank-millennia-credit-card.pdf", kind: official_page, title: "HDFC Bank: Millennia features and fees (PDF)"}
+      - {url: "https://www.paisabazaar.com/hdfc-bank/millennia-credit-card/", kind: aggregator, title: "Paisabazaar: HDFC Millennia"}
+      - {url: "https://www.bankbazaar.com/credit-card/hdfc-bank-millenia-credit-card.html", kind: aggregator, title: "BankBazaar: HDFC Millennia"}
+
+  - id: axis-magnus
+    bank: Axis Bank
+    name: Axis Bank Magnus credit card
+    aliases: [axis magnus, magnus axis, magnus credit card]
+    sources:
+      - {url: "https://www.axisbank.com/retail/cards/credit-card/axis-bank-magnus-credit-card", kind: official_page, title: "Axis Bank: Magnus card page"}
+      - {url: "https://www.axis.bank.in/docs/default-source/default-document-library/mitc-credit-cards.pdf", kind: mitc_pdf, title: "Axis Bank: credit card MITC (PDF)"}
+      - {url: "https://campaign.axis.bank.in/generic/terms-and-conditions-magnus.pdf", kind: bank_notice, title: "Axis Bank: notice of Magnus terms revision (PDF)"}
+      - {url: "https://www.paisabazaar.com/axis-bank/magnus-credit-card/", kind: aggregator, title: "Paisabazaar: Axis Magnus"}
+
+  - id: icici-amazon-pay
+    bank: ICICI Bank
+    name: ICICI Bank Amazon Pay credit card
+    aliases: [amazon pay icici, icici amazon pay, amazon pay credit card]
+    sources:
+      - {url: "https://www.icicibank.com/personal-banking/cards/credit-card/amazon-pay-credit-card", kind: official_page, title: "ICICI Bank: Amazon Pay card page"}
+      - {url: "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/revamp-page-images/docs/pdf/mitc-cc-gk-t.pdf", kind: mitc_pdf, title: "ICICI Bank: Amazon Pay card MITC (PDF)"}
+
+  - id: sbi-simplyclick
+    bank: SBI Card
+    name: SBI SimplyCLICK credit card
+    aliases: [simplyclick, simply click sbi, sbi simply click, sbi simplyclick]
+    sources:
+      - {url: "https://www.sbicard.com/en/personal/credit-cards/shopping/simplyclick-sbi-card.page", kind: official_page, title: "SBI Card: SimplyCLICK card page"}
+      - {url: "https://www.sbicard.com/en/most-important-terms-and-conditions.page", kind: mitc_pdf, title: "SBI Card: Most Important Terms and Conditions"}
+      - {url: "https://www.bankbazaar.com/credit-card/sbi-simplyclick-credit-card.html", kind: aggregator, title: "BankBazaar: SBI SimplyCLICK"}
+
+  - id: kotak-league-platinum
+    bank: Kotak Mahindra Bank
+    name: Kotak League Platinum credit card
+    aliases: [kotak league, league platinum, kotak league platinum]
+    sources:
+      - {url: "https://www.kotak.bank.in/en/personal-banking/cards/credit-cards/league-platinum-card/fees-and-charges.html", kind: official_page, title: "Kotak: League Platinum fees and charges"}
+      - {url: "https://www.kotak.bank.in/content/dam/Kotak/files/key-fact-statement/key-fact-statement-kfs-league-platinum.pdf", kind: kfs_pdf, title: "Kotak: League Platinum Key Fact Statement (PDF)"}
+
+  - id: idfc-first-millennia
+    bank: IDFC FIRST Bank
+    name: IDFC FIRST Millennia credit card
+    aliases: [idfc millennia, idfc first millennia, idfc millenia]
+    sources:
+      - {url: "https://www.idfcfirst.bank.in/content/dam/idfcfirstbank/pdf/cards/IDFC-FIRST-Millennia-2024.pdf", kind: official_page, title: "IDFC FIRST Bank: Millennia card guide (PDF)"}
+      - {url: "https://www.idfcfirst.bank.in/MITC.pdf", kind: mitc_pdf, title: "IDFC FIRST Bank: credit card MITC (PDF)"}
+      - {url: "https://www.bankbazaar.com/credit-card/idfc-first-bank-millennia-credit-card.html", kind: aggregator, title: "BankBazaar: IDFC FIRST Millennia"}
+
+  - id: au-lit
+    bank: AU Small Finance Bank
+    name: AU Bank LIT credit card
+    aliases: [au lit, lit credit card, au bank lit]
+    sources:
+      # 403 to plain HTTP; fetched through Jina Reader.
+      - {url: "https://www.au.bank.in/personal-banking/credit-cards/lit-credit-card", kind: official_page, title: "AU Bank: LIT card page", render: true}
+      - {url: "https://www.bankbazaar.com/credit-card/au-bank-lit-credit-card.html", kind: aggregator, title: "BankBazaar: AU LIT"}
+
+# Schemes and scholarships (general pack).
+topics:
+  - id: nmmss-2026-27
+    bank: Ministry of Education
+    name: National Means-cum-Merit Scholarship (NMMSS) 2026-27
+    aliases: [nmmss, nmms, national means cum merit scholarship, means cum merit scholarship, nmms scholarship]
+    sources:
+      - {url: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2305633", kind: bank_notice, title: "PIB (Ministry of Education): NMMSS 2026-27 deadline extended"}
+      - {url: "https://scholarships.gov.in/", kind: official_page, title: "National Scholarship Portal (NSP)"}
+      - {url: "https://thecsrjournal.in/education-ministry-nmmss-scholarship-deadline-extended-to-october-31", kind: news, title: "The CSR Journal: NMMSS deadline extended"}
+      - {url: "https://school.careers360.com/articles/nsp-scholarship-last-date-2026-27", kind: aggregator, title: "Careers360: NSP scholarship last dates 2026-27"}
+      - {url: "https://www.careerindia.com/news/nsp-2026-27-scholarship-portal-deadlines-verification-guide-011-66633.html", kind: aggregator, title: "CareerIndia: NSP 2026-27 deadlines guide"}

@@ -1,0 +1,93 @@
+# General pack: public schemes, scholarships and other official programmes in India.
+#
+# Same engine as the credit-card pack, different attributes. Keys must not clash with other packs
+# (the `attribute` table is keyed by `key` alone). No item is mitc_required: RBI's MITC rule is
+# for credit cards only, so the "missing terms" check stays off for this pack.
+pack: general
+label: Scheme or scholarship
+subject: an Indian public scheme, scholarship or official programme
+issuer: the official body
+terms_doc: notification
+prompt_version: gen-extract-v1
+notice_rules: false
+extract_notes:
+  - >-
+    Dates matter most here. For deadlines put the date exactly as written in `value_raw` ("31 October
+    2026", "31.10.2026"). If a deadline was extended, extract the new date as the claim and mention the
+    old date in `conditions` (e.g. "extended from 15 October 2026").
+  - >-
+    Keep stages apart: the last date for students to apply is `application_deadline`; the last date for
+    the institute, district or state to verify applications is `verification_deadline`.
+attributes:
+  - key: application_deadline
+    label: Last date to apply
+    category: dates
+    value_type: date
+    importance: 5
+    keywords: [last date, deadline, closing date, apply before, apply by, portal closes, extended till]
+  - key: verification_deadline
+    label: Last date for institute or official verification
+    category: dates
+    value_type: date
+    importance: 4
+    keywords: [verification, institute level, district level, state level, defective applications]
+  - key: benefit_amount
+    label: Benefit or scholarship amount
+    category: money
+    value_type: money
+    importance: 5
+    keywords: [amount, scholarship of, per annum, per month, maintenance allowance, financial assistance, rs]
+  - key: income_limit
+    label: Family income limit
+    category: eligibility
+    value_type: money
+    importance: 5
+    keywords: [annual income, family income, income ceiling, income limit, income certificate]
+  - key: minimum_marks
+    label: Minimum marks required
+    category: eligibility
+    value_type: percent
+    importance: 4
+    keywords: [minimum marks, percentage of marks, at least, cgpa, scored]
+  - key: scheme_eligibility
+    label: Who is eligible
+    category: eligibility
+    value_type: text
+    importance: 5
+    keywords: [eligible, eligibility, who can apply, applicants must, domicile, category]
+  - key: application_fee
+    label: Application fee
+    category: money
+    value_type: money
+    importance: 3
+    keywords: [application fee, registration fee, processing fee, free of cost, no fee]
+  - key: required_documents
+    label: Documents required
+    category: process
+    value_type: text
+    importance: 4
+    keywords: [documents required, upload, certificate, aadhaar, bank account, bonafide]
+  - key: renewal_condition
+    label: Renewal condition
+    category: eligibility
+    value_type: text
+    importance: 4
+    keywords: [renewal, renew, continuation, next year, promoted]
+  - key: application_process
+    label: How to apply
+    category: process
+    value_type: text
+    importance: 3
+    keywords: [how to apply, apply online, register, portal, one time registration, otr]
+  - key: disbursement_timeline
+    label: When the money is paid
+    category: process
+    value_type: text
+    importance: 3
+    keywords: [disbursement, credited, dbt, direct benefit transfer, payment]
+  - key: official_helpline
+    label: Official helpline or grievance contact
+    category: process
+    value_type: text
+    importance: 3
+    keywords: [helpline, helpdesk, grievance, contact, email, toll free]
