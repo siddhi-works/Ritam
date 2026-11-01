@@ -36,3 +36,6 @@ skills-lock.json
 brief/
 research/
 docs/
+
+# Demo video (submitted separately)
+*.mp4
