@@ -65,30 +65,6 @@ The app ships with three audits built from real public documents:
 | HDFC Millennia | Customer-care claim vs written fee waiver; outdated figure on a comparison site; an old link that now opens a different card |
 | ICICI Amazon Pay | MITC terms that are mentioned but unclear |
 
-## Run locally
-
-Requirements: Python 3.12+, Node 20+, a Postgres database.
-
-```bash
-cp .env.example .env          # add DATABASE_URL and at least one LLM key
-cd backend
-python -m venv .venv && .venv/Scripts/activate   # macOS/Linux: source .venv/bin/activate
-pip install -e ".[dev]"
-alembic upgrade head
-uvicorn app.main:app --reload
-```
-
-```bash
-cd frontend
-npm install
-npm run dev                   # http://localhost:3000
-```
-
-Optional: `python -m app.seed --demo-dir ../demo-docs` rebuilds the example audits.
-
-Tests: `pytest` in `backend/`. Database tests run when `RITAM_TEST_DATABASE_URL` points at a
-separate database.
-
 ## Limits
 
 Ritam reports possible gaps, not verdicts, and it is not financial advice. It only knows what
@@ -96,5 +72,12 @@ the sources it read say; the bank's latest MITC is the final word.
 
 ## Future scope
 
-Personal loans (Key Fact Statement and APR checks), scholarships and government schemes, more languages, listen-aloud summaries,
-downloadable reports.
+Credit Card Statement Verification - Analyse monthly statements and compare billed charges against applicable MITC documents and RBI requirements.
+
+Automated Policy Change Alerts - Notify users when the official terms, charges, or benefits of saved credit cards change.
+
+Instant Verified Answers - Maintain structured, previously verified credit card information for faster responses without repeated extraction.
+
+Multilingual Accessibility - Introduce Hindi, regional Indian languages, and voice-based interaction to improve accessibility for users with varying levels of digital literacy.
+
+Cross-Domain Expansion - Extend the same verification framework to personal loans, including Key Fact Statements and Annual Percentage Rates, as well as scholarship information and other document-intensive decision-making domains.
