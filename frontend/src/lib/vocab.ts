@@ -1,4 +1,4 @@
-import type { ChecklistOut, Label, Pack } from "./api";
+import type { ChecklistOut, Label } from "./api";
 
 /** Labels always render as icon + word, never colour alone (WCAG 1.4.1). */
 export const LABELS: Record<Label, { name: string; meaning: string; text: string; bg: string; border: string }> = {
@@ -63,21 +63,6 @@ export const SOURCE_KINDS: Record<string, string> = {
 
 /** Kinds a person can choose when adding a link or file. */
 export const ADDABLE_KINDS = ["official_page", "mitc_pdf", "bank_notice", "aggregator", "news", "rbi_rule"] as const;
-
-/** Same source kinds, named for schemes and scholarships. */
-export const GENERAL_KINDS = ["official_page", "bank_notice", "aggregator", "news"] as const;
-export const GENERAL_KIND_NAMES: Record<string, string> = {
-  official_page: "Official web page",
-  bank_notice: "Official notice or circular",
-  mitc_pdf: "Official guidelines",
-  aggregator: "Third-party site",
-};
-
-/** Wording that differs between packs. */
-export const PACK_WORDS: Record<Pack, { issuer: string; source: string; terms: string; thing: string; feature: string; ask: string }> = {
-  credit_card: { issuer: "the bank", source: "Bank page", terms: "MITC", thing: "card", feature: "card feature", ask: "Ask the bank" },
-  general: { issuer: "the official body", source: "Official page", terms: "notification", thing: "scheme", feature: "detail", ask: "Ask the office" },
-};
 
 export const ACTIONS: Record<ChecklistOut["action"], string> = {
   check_page: "Check",

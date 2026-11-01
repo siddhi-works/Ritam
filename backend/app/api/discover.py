@@ -15,7 +15,7 @@ _limiter = _Limiter(limit=20, window_s=3600)
 class DiscoverIn(BaseModel):
     question: str = Field(min_length=3, max_length=1000)
     product: str | None = Field(default=None, max_length=200)
-    pack: Literal["credit_card", "general"] = "credit_card"
+    pack: Literal["credit_card"] = "credit_card"
 
 
 class _BudgetedSearch(TavilySearch):

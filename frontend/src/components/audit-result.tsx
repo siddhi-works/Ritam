@@ -7,15 +7,14 @@ import { EvidenceSheet, type EvidenceTarget } from "@/components/evidence-sheet"
 import { FindingCard } from "@/components/finding-card";
 import { LabelTag } from "@/components/label-tag";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import type { AuditOut, ChecklistOut, Label, Pack } from "@/lib/api";
-import { ACTIONS, formatDate, GENERAL_KIND_NAMES, LABELS, PACK_WORDS, SOURCE_KINDS, sourceName, STEP_NAMES } from "@/lib/vocab";
+import type { AuditOut, ChecklistOut, Label } from "@/lib/api";
+import { ACTIONS, formatDate, LABELS, SOURCE_KINDS, sourceName, STEP_NAMES } from "@/lib/vocab";
 
 const CITE = /\s*\[[a-z_]+:[^\]]+\]/g;
 
 export function AuditResult({ audit }: { audit: AuditOut }) {
   const [filter, setFilter] = useState<Label | "all">("all");
   const [target, setTarget] = useState<EvidenceTarget | null>(null);
-  const words = PACK_WORDS[audit.pack ?? "credit_card"];
 
   const counts = useMemo(() => {
     const c: Record<Label, number> = { sourced: 0, ai_suggestion: 0, uncertain: 0 };
@@ -86,7 +85,7 @@ export function AuditResult({ audit }: { audit: AuditOut }) {
           {shown.length === 0 ? (
             <p className="rounded-lg border border-rule bg-white p-5 text-ink">
               {audit.findings.length === 0
-                ? `No gaps, conflicts or outdated information were found in these sources. That only covers what was checked; ${words.issuer}'s latest ${words.terms} is still the final word.`
+                ? "No gaps, conflicts or outdated information were found in these sources. That only covers what was checked; the bank's latest MITC is still the final word."
                 : "No findings with this label."}
             </p>
           ) : (
@@ -98,11 +97,11 @@ export function AuditResult({ audit }: { audit: AuditOut }) {
           )}
         </section>
 
-        <Checklist items={audit.checklist} pack={audit.pack} />
+        <Checklist items={audit.checklist} />
       </div>
 
       <section aria-label="Details" className="space-y-3">
-        <Details title={`Everything Ritam read, by ${words.feature}`} defaultOpen={false}>
+        <Details title="Everything Ritam read, by card feature" defaultOpen={false}>
           <CoverageTable audit={audit} onOpen={setTarget} />
         </Details>
         <Details title={`Sources (${audit.sources.length})`}>
@@ -149,10 +148,10 @@ function CoverageScore({ audit }: { audit: AuditOut }) {
   if (!c.total) return null;
   return (
     <div className="rounded-lg border border-rule bg-white p-5 sm:p-6">
-      <h3 className="text-[0.9375rem] font-medium text-mute">How complete is this {PACK_WORDS[audit.pack].thing}&apos;s information?</h3>
+      <h3 className="text-[0.9375rem] font-medium text-mute">How complete is this card&apos;s information?</h3>
       <p className="mt-2 text-ink">
         <span className="text-[2rem] font-semibold leading-none tracking-tight">{c.official}</span>
-        <span className="text-lg"> of {c.total} key terms confirmed by {PACK_WORDS[audit.pack].issuer}</span>
+        <span className="text-lg"> of {c.total} key terms confirmed by the bank</span>
       </p>
       <div
         className="mt-4 flex h-3 overflow-hidden rounded-full bg-paper"
@@ -178,9 +177,8 @@ function CoverageScore({ audit }: { audit: AuditOut }) {
 
 const ACTION_ICONS = { check_page: SearchCheck, call_bank: Phone, grievance: Mail, ombudsman: Mail } as const;
 
-function Checklist({ items, pack }: { items: ChecklistOut[]; pack: Pack }) {
+function Checklist({ items }: { items: ChecklistOut[] }) {
   if (!items.length) return null;
-  const words = PACK_WORDS[pack];
   return (
     <aside aria-labelledby="checklist-title" className="rounded-lg border border-ink bg-white p-5 lg:sticky lg:top-6">
       <h2 id="checklist-title" className="text-lg font-semibold text-ink">
@@ -197,11 +195,11 @@ function Checklist({ items, pack }: { items: ChecklistOut[]; pack: Pack }) {
                 <p className="text-[0.9375rem] leading-snug text-ink">{c.text}</p>
                 <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-mute">
                   <span className="inline-flex items-center gap-1">
-                    <Icon aria-hidden className="size-3.5" /> {c.action === "call_bank" ? words.ask : ACTIONS[c.action]}
+                    <Icon aria-hidden className="size-3.5" /> {ACTIONS[c.action]}
                   </span>
                   {c.verify_url && (
                     <a href={c.verify_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 underline underline-offset-4">
-                      {words.source} <ExternalLink aria-hidden className="size-3" />
+                      Bank page <ExternalLink aria-hidden className="size-3" />
                       <span className="sr-only">(opens in a new tab)</span>
                     </a>
                   )}
@@ -237,12 +235,11 @@ const STATUS_TEXT: Record<string, string> = {
 
 function CoverageTable({ audit, onOpen }: { audit: AuditOut; onOpen: (t: EvidenceTarget) => void }) {
   const sources = audit.sources.filter((s) => audit.matrix.some((r) => r.cells[s.id]));
-  const feature = PACK_WORDS[audit.pack].feature;
-  if (!audit.matrix.length) return <p className="text-mute">No {feature}s were extracted.</p>;
+  if (!audit.matrix.length) return <p className="text-mute">No card features were extracted.</p>;
   return (
     <div className="-mx-5 overflow-x-auto px-5">
       <table className="w-full min-w-[40rem] border-collapse text-sm">
-        <caption className="sr-only">Values found for each {feature} in each source</caption>
+        <caption className="sr-only">Values found for each card feature in each source</caption>
         <thead>
           <tr className="border-b border-rule text-left align-bottom">
             <th scope="col" className="py-2 pr-4 font-medium text-mute">Feature</th>
@@ -292,7 +289,7 @@ function SourcesList({ audit, onOpen }: { audit: AuditOut; onOpen: (t: EvidenceT
           <li key={s.id} className="py-4 first:pt-0 last:pb-0">
             <p className="font-medium text-ink">{sourceName(s)}</p>
             <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-mute">
-              <span>{(audit.pack === "general" && GENERAL_KIND_NAMES[s.kind]) || SOURCE_KINDS[s.kind] || s.kind}</span>
+              <span>{SOURCE_KINDS[s.kind] ?? s.kind}</span>
               {s.effective_from && <span>Effective {formatDate(s.effective_from)}</span>}
               {s.published_at && !s.effective_from && <span>Dated {formatDate(s.published_at)}</span>}
               {s.undated && <span className="font-medium text-uncertain">No reliable date</span>}

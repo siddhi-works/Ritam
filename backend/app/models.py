@@ -170,7 +170,7 @@ class Audit(Base):
     question: Mapped[str] = mapped_column(Text)
     # The card being audited; scopes extraction for multi-card documents (e.g. a bank-wide MITC).
     product_name: Mapped[str | None] = mapped_column(String(200))
-    # Which pack (attribute set and wording) the audit runs with: credit_card | general.
+    # Attribute pack the audit runs with (packs/<name>.yaml).
     pack: Mapped[str] = mapped_column(
         String(40), default="credit_card", server_default="credit_card"
     )

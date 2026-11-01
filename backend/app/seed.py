@@ -167,42 +167,6 @@ CASES = [
             ),
         ],
     ),
-    # General pack: the sources discovery returns for this scheme.
-    DemoCase(
-        slug="nmmss",
-        question=(
-            "What is the last date to apply for the NMMSS scholarship for 2026-27, and how much is it?"
-        ),
-        product="National Means-cum-Merit Scholarship (NMMSS) 2026-27",
-        pack="general",
-        sources=[
-            UrlSource(
-                "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2305633",
-                SourceKind.BANK_NOTICE,
-                "PIB (Ministry of Education): NMMSS 2026-27 deadline extended",
-            ),
-            UrlSource(
-                "https://scholarships.gov.in/",
-                SourceKind.OFFICIAL_PAGE,
-                "National Scholarship Portal (NSP)",
-            ),
-            UrlSource(
-                "https://thecsrjournal.in/education-ministry-nmmss-scholarship-deadline-extended-to-october-31",
-                SourceKind.NEWS,
-                "The CSR Journal: NMMSS deadline extended",
-            ),
-            UrlSource(
-                "https://school.careers360.com/articles/nsp-scholarship-last-date-2026-27",
-                SourceKind.AGGREGATOR,
-                "Careers360: NSP scholarship last dates 2026-27",
-            ),
-            UrlSource(
-                "https://www.careerindia.com/news/nsp-2026-27-scholarship-portal-deadlines-verification-guide-011-66633.html",
-                SourceKind.AGGREGATOR,
-                "CareerIndia: NSP 2026-27 deadlines guide",
-            ),
-        ],
-    ),
 ]
 
 

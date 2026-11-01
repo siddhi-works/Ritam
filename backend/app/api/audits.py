@@ -59,7 +59,7 @@ class ExistingIn(BaseModel):
 class AuditIn(BaseModel):
     question: str = Field(min_length=5, max_length=1000)
     product: str | None = Field(default=None, max_length=200)
-    pack: Literal["credit_card", "general"] = "credit_card"
+    pack: Literal["credit_card"] = "credit_card"
     sources: list[Annotated[UrlIn | TextIn | ExistingIn, Field(discriminator="type")]] = Field(
         min_length=1, max_length=MAX_SOURCES
     )

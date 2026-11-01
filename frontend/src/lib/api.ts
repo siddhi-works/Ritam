@@ -115,7 +115,6 @@ export interface AuditOut {
   id: string;
   question: string;
   product_name: string | null;
-  pack: Pack;
   status: AuditStatus;
   created_at: string;
   finished_at: string | null;
@@ -128,8 +127,6 @@ export interface AuditOut {
   findings: FindingOut[];
   checklist: ChecklistOut[];
 }
-
-export type Pack = "credit_card" | "general";
 
 /** A source found by discovery, confirmed by the user before the audit. */
 export interface Candidate {

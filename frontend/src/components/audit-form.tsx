@@ -2,11 +2,9 @@
 
 import {
   ArrowLeft,
-  CreditCard,
   ExternalLink,
   FileUp,
   Globe,
-  GraduationCap,
   Link2,
   MessageSquareText,
   Plus,
@@ -23,8 +21,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { apiPost, problemMessage, uploadFile, type Candidate, type DiscoverOut, type Pack } from "@/lib/api";
-import { ADDABLE_KINDS, GENERAL_KIND_NAMES, GENERAL_KINDS, SOURCE_KINDS } from "@/lib/vocab";
+import { apiPost, problemMessage, uploadFile, type Candidate, type DiscoverOut } from "@/lib/api";
+import { ADDABLE_KINDS, SOURCE_KINDS } from "@/lib/vocab";
 
 type Mode = "link" | "file" | "text" | "chat";
 interface Row {
@@ -43,30 +41,6 @@ const MODES: { value: Mode; label: string; icon: typeof Link2 }[] = [
   { value: "text", label: "Pasted text", icon: TextCursorInput },
   { value: "chat", label: "What you were told", icon: MessageSquareText },
 ];
-
-const PACKS: Record<
-  Pack,
-  { label: string; icon: typeof CreditCard; name: string; namePlaceholder: string; question: string; hint: string; own: string }
-> = {
-  credit_card: {
-    label: "A credit card",
-    icon: CreditCard,
-    name: "Which card?",
-    namePlaceholder: "e.g. HDFC Millennia",
-    question: "Did this card's fees or benefits change, and was I told in time?",
-    hint: "Popular cards are on Ritam's checked list. Others are looked up on the web.",
-    own: "What customer care told you, or a letter or email from the bank, lets Ritam check it against the written terms.",
-  },
-  general: {
-    label: "A scholarship or scheme",
-    icon: GraduationCap,
-    name: "Which scholarship or scheme?",
-    namePlaceholder: "e.g. Post-matric scholarship for SC students",
-    question: "What is the last date to apply, and who is eligible?",
-    hint: "Ritam searches the web and lists official government sites first.",
-    own: "A circular from your college, or what a helpline told you, lets Ritam check it against the official notice.",
-  },
-};
 
 const MAX_SOURCES = 12;
 
@@ -95,7 +69,6 @@ const isFilled = (r: Row) =>
 export function AuditForm() {
   const router = useRouter();
   const formId = useId();
-  const [pack, setPack] = useState<Pack>("credit_card");
   const [question, setQuestion] = useState("");
   const [product, setProduct] = useState("");
   const [found, setFound] = useState<DiscoverOut | null>(null);
@@ -105,7 +78,6 @@ export function AuditForm() {
   const [error, setError] = useState<string | null>(null);
   const reviewHeading = useRef<HTMLHeadingElement>(null);
   const reviewing = found !== null;
-  const meta = PACKS[pack];
 
   useEffect(() => {
     if (reviewing) reviewHeading.current?.focus();
@@ -113,13 +85,6 @@ export function AuditForm() {
 
   const update = (id: number, patch: Partial<Row>) => setRows((rs) => rs.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   const total = picked.size + rows.filter(isFilled).length;
-
-  function choosePack(p: Pack) {
-    if (p !== pack) setProduct("");
-    setPack(p);
-    setFound(null);
-    setError(null);
-  }
 
   function checkQuestion(): string | null {
     if (question.trim().length < 5) return "Write your question in a few words first.";
@@ -130,12 +95,12 @@ export function AuditForm() {
     e.preventDefault();
     const problem =
       checkQuestion() ??
-      (product.trim().length < 3 ? `Tell Ritam ${pack === "credit_card" ? "which card" : "which scholarship or scheme"} to check.` : null);
+      (product.trim().length < 3 ? "Tell Ritam which card to check." : null);
     setError(problem);
     if (problem) return;
     setBusy("Finding sources…");
     try {
-      const res = await apiPost<DiscoverOut>("/api/discover", { question: question.trim(), product: product.trim(), pack });
+      const res = await apiPost<DiscoverOut>("/api/discover", { question: question.trim(), product: product.trim() });
       setFound(res);
       setPicked(new Set(res.candidates.slice(0, MAX_SOURCES).map((c) => c.url)));
       if (res.candidates.length === 0 && rows.length === 0) setRows([newRow("link")]);
@@ -183,7 +148,6 @@ export function AuditForm() {
       const res = await apiPost<{ audit_id: string }>("/api/audits", {
         question: question.trim(),
         product: found?.matched_card ?? (product.trim() || null),
-        pack,
         sources,
       });
       router.push(`/audit/${res.audit_id}`);
@@ -202,41 +166,20 @@ export function AuditForm() {
   if (!found) {
     return (
       <form onSubmit={findSources} noValidate aria-describedby={`${formId}-error`} className="space-y-6">
-        <div role="radiogroup" aria-label="What are you checking?" className="flex flex-wrap gap-2">
-          {(Object.keys(PACKS) as Pack[]).map((p) => {
-            const Icon = PACKS[p].icon;
-            return (
-              <button
-                key={p}
-                type="button"
-                role="radio"
-                aria-checked={pack === p}
-                onClick={() => choosePack(p)}
-                className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-[0.9375rem] ${
-                  pack === p ? "border-ink bg-ink text-white" : "border-rule bg-white text-ink hover:border-ink"
-                }`}
-              >
-                <Icon aria-hidden className="size-4" />
-                {PACKS[p].label}
-              </button>
-            );
-          })}
-        </div>
-
         <div className="grid gap-5 md:grid-cols-[1fr_1.4fr]">
           <div className="space-y-2">
             <Label htmlFor={`${formId}-p`} className="text-[0.9375rem]">
-              {meta.name}
+              Which card?
             </Label>
             <Input
               id={`${formId}-p`}
               value={product}
               onChange={(e) => setProduct(e.target.value)}
-              placeholder={meta.namePlaceholder}
+              placeholder="e.g. HDFC Millennia"
               autoComplete="off"
               className="bg-white text-base"
             />
-            <p className="text-sm text-mute">{meta.hint}</p>
+            <p className="text-sm text-mute">Popular cards are on Ritam&apos;s checked list. Others are looked up on the web.</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor={`${formId}-q`} className="text-[0.9375rem]">
@@ -246,7 +189,7 @@ export function AuditForm() {
               id={`${formId}-q`}
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder={meta.question}
+              placeholder="Did this card's fees or benefits change, and was I told in time?"
               rows={3}
               className="bg-white text-base"
             />
@@ -278,7 +221,7 @@ export function AuditForm() {
           {cands.length ? `Ritam found ${cands.length} source${cands.length === 1 ? "" : "s"}` : "Add the sources to check"}
         </h3>
         <p className="text-[0.9375rem] text-mute">
-          <FoundNote found={found} product={product} pack={pack} />
+          <FoundNote found={found} product={product} />
         </p>
       </div>
 
@@ -290,7 +233,6 @@ export function AuditForm() {
               <CandidateRow
                 key={c.url}
                 c={c}
-                pack={pack}
                 checked={picked.has(c.url)}
                 onToggle={(on) =>
                   setPicked((s) => {
@@ -310,13 +252,12 @@ export function AuditForm() {
         <h4 id={`${formId}-own`} className="text-[0.9375rem] font-medium">
           Add your own source <span className="font-normal text-mute">(optional)</span>
         </h4>
-        <p className="text-sm text-mute">{meta.own}</p>
+        <p className="text-sm text-mute">What customer care told you, or a letter or email from the bank, lets Ritam check it against the written terms.</p>
         {rows.map((r, i) => (
           <SourceRow
             key={r.id}
             row={r}
             index={i}
-            pack={pack}
             onChange={(p) => update(r.id, p)}
             onRemove={() => setRows((rs) => rs.filter((x) => x.id !== r.id))}
           />
@@ -347,17 +288,15 @@ export function AuditForm() {
   );
 }
 
-function FoundNote({ found, product, pack }: { found: DiscoverOut; product: string; pack: Pack }) {
+function FoundNote({ found, product }: { found: DiscoverOut; product: string }) {
   if (found.candidates.length === 0) {
     if (found.errors.length) return <>The web search didn&apos;t answer just now. Add a link or document below, or try again later.</>;
     if (!found.search_available)
-      return pack === "credit_card" ? (
+      return (
         <>
           &ldquo;{product}&rdquo; isn&apos;t on Ritam&apos;s checked list yet, and web search is off on this server. Add a link or
           document below.
         </>
-      ) : (
-        <>Web search is off on this server, so add the official page or notice below.</>
       );
     if (found.searched) return <>The web search found nothing usable. Add a link or document below.</>;
     return <>Paste a link, upload a PDF, or paste text below.</>;
@@ -377,7 +316,7 @@ function FoundNote({ found, product, pack }: { found: DiscoverOut; product: stri
   );
 }
 
-function CandidateRow({ c, pack, checked, onToggle }: { c: Candidate; pack: Pack; checked: boolean; onToggle: (on: boolean) => void }) {
+function CandidateRow({ c, checked, onToggle }: { c: Candidate; checked: boolean; onToggle: (on: boolean) => void }) {
   const id = useId();
   return (
     <li className="flex items-start gap-3 p-3 sm:p-4">
@@ -402,7 +341,7 @@ function CandidateRow({ c, pack, checked, onToggle }: { c: Candidate; pack: Pack
               <Globe aria-hidden className="size-3.5" /> Third-party
             </span>
           )}
-          <span className="text-mute">{(pack === "general" && GENERAL_KIND_NAMES[c.kind]) || SOURCE_KINDS[c.kind] || c.kind}</span>
+          <span className="text-mute">{SOURCE_KINDS[c.kind] ?? c.kind}</span>
           <span className="break-all text-mute">{hostOf(c.url)}</span>
         </div>
       </div>
@@ -422,18 +361,15 @@ function CandidateRow({ c, pack, checked, onToggle }: { c: Candidate; pack: Pack
 function SourceRow({
   row,
   index,
-  pack,
   onChange,
   onRemove,
 }: {
   row: Row;
   index: number;
-  pack: Pack;
   onChange: (patch: Partial<Row>) => void;
   onRemove?: () => void;
 }) {
   const id = useId();
-  const kinds = pack === "credit_card" ? ADDABLE_KINDS : GENERAL_KINDS;
   return (
     <div className="rounded-md border border-rule bg-white p-3 sm:p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
@@ -474,7 +410,7 @@ function SourceRow({
                 inputMode="url"
                 value={row.url}
                 onChange={(e) => onChange({ url: e.target.value })}
-                placeholder={pack === "credit_card" ? "https://www.bank.in/credit-cards/…" : "https://scholarships.gov.in/…"}
+                placeholder="https://www.bank.in/credit-cards/…"
                 className="text-base"
               />
             </div>
@@ -502,9 +438,9 @@ function SourceRow({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {kinds.map((k) => (
+                {ADDABLE_KINDS.map((k) => (
                   <SelectItem key={k} value={k}>
-                    {pack === "credit_card" ? SOURCE_KINDS[k] : (GENERAL_KIND_NAMES[k] ?? SOURCE_KINDS[k])}
+                    {SOURCE_KINDS[k]}
                   </SelectItem>
                 ))}
               </SelectContent>

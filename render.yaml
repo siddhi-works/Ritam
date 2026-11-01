@@ -7,8 +7,8 @@ services:
     plan: free
     region: virginia            # closest to Neon (aws-us-east-1); pick Ohio if Virginia is unavailable
     rootDir: backend            # only changes under backend/ trigger a deploy
-    dockerfilePath: ./backend/Dockerfile   # Blueprint spec: relative to the repo root, not rootDir
-    dockerContext: ./backend
+    dockerfilePath: ./Dockerfile   # relative to rootDir
+    dockerContext: .
     healthCheckPath: /livez     # never touches the database (Neon free compute-hour budget)
     autoDeployTrigger: checksPass  # deploy only after GitHub CI passes (spec replaces autoDeploy)
     envVars:

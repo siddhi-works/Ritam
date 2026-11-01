@@ -26,8 +26,7 @@ GOV_SUFFIXES = (".gov.in", ".nic.in", ".ac.in", ".edu.in")
 AGGREGATOR_DOMAINS = {
     "paisabazaar.com", "bankbazaar.com", "cardinsider.com", "cardexpert.in", "groww.in", "finology.in",
     "cardadvisor.in", "wishfin.com", "bajajfinservmarkets.in", "creditkaro.com", "magicpin.in",
-    "buddy4study.com", "scholarshipsinindia.com", "shiksha.com", "collegedunia.com",
-}  # fmt: skip
+    }  # fmt: skip
 FORUM_DOMAINS = {
     "technofino.in", "reddit.com", "quora.com", "facebook.com", "x.com", "twitter.com", "instagram.com",
     "youtube.com", "linkedin.com",
@@ -108,7 +107,7 @@ def catalogue() -> tuple[CatalogueCard, ...]:
         CatalogueCard(
             c["id"], c["bank"], c["name"], tuple(c.get("aliases", [])), tuple(c["sources"]), pack
         )
-        for section, pack in (("cards", "credit_card"), ("topics", "general"))
+        for section, pack in (("cards", "credit_card"),)
         for c in raw.get(section) or []
     )
 
@@ -116,8 +115,8 @@ def catalogue() -> tuple[CatalogueCard, ...]:
 # Words every card or scheme name shares; they must never be what makes two names match
 # ("IndusInd Legend credit card" is not "AU LIT credit card").
 _GENERIC = {
-    "credit", "card", "cards", "bank", "the", "my", "a", "of", "for", "and", "scholarship",
-    "scholarships", "scheme", "yojana", "first", "small", "finance",
+    "credit", "card", "cards", "bank", "the", "my", "a", "of", "for", "and", "first",
+    "small", "finance",
 }  # fmt: skip
 
 
@@ -186,13 +185,6 @@ class TavilySearch:
 
 def queries_for(product: str, question: str, pack: str) -> list[tuple[str, str]]:
     """(query, reason) pairs, at most three per discovery."""
-    if pack == "general":
-        topic = product or question
-        return [
-            (f"{topic} official notification eligibility documents deadline", "official details"),
-            (f"{topic} renewal conditions how to apply", "renewal and process"),
-            (f"{topic} 2026 latest update", "recent changes"),
-        ]
     return [
         (f"{product} most important terms and conditions MITC fees charges", "bank terms and fees"),
         (

@@ -1,30 +1,5 @@
 from app.analysis.compare import comparable, same_value
 from app.extract.normalize import normalize_value
-from app.extract.prompt import PROMPT_VERSION, scope_key, system_prompt
-from app.packs import load_pack
-
-
-def test_packs_load_with_disjoint_keys() -> None:
-    card, general = load_pack("credit_card"), load_pack("general")
-    assert not set(card.keys) & set(general.keys)  # attribute table is keyed by key alone
-    assert card.prompt_version == PROMPT_VERSION
-    assert general.prompt_version != card.prompt_version
-    assert not any(a.mitc_required for a in general.attributes)
-    assert general.notice_rules is False
-
-
-def test_system_prompt_is_pack_specific() -> None:
-    card = system_prompt(load_pack("credit_card"))
-    general = system_prompt(load_pack("general"))
-    assert "an Indian credit card" in card and "dcc_markup" in card
-    assert "scholarship" in general and "dcc_markup" not in general
-    assert "application_deadline" in general and "the official body" in general
-
-
-def test_scope_key_separates_packs_for_the_same_product() -> None:
-    general = load_pack("general")
-    assert scope_key("NSP", general.prompt_version) != scope_key("NSP")
-    assert scope_key(None, general.prompt_version) == general.prompt_version
 
 
 def test_deadlines_compare_as_dates() -> None:

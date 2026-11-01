@@ -276,50 +276,14 @@ def test_checklist_uses_feature_labels() -> None:
     assert "card closure process" in item.text
 
 
-def test_general_pack_flags_deadline_conflicts_with_its_own_wording() -> None:
-    general = load_pack("general")
-
-    def gclaim(id: str, source: str, attribute: str, raw: str) -> ClaimFact:
-        spec = general.get(attribute)
-        assert spec is not None
-        return ClaimFact(
-            id=id, source_id=source, attribute=attribute, value_raw=raw,
-            value_norm=normalize_value(raw, spec.value_type), quote=f"... {raw} ...", page_no=1,
-        )  # fmt: skip
-
-    sources = [
-        src("portal", "official_page", 1, effective_from=date(2026, 10, 1), url="https://scholarships.gov.in/"),
-        src("guide", "official_page", 1, effective_from=date(2026, 7, 1), url="https://scholarships.gov.in/g.pdf"),
-        src("notice", "bank_notice", 1, announced_at=date(2026, 10, 20), effective_from=date(2026, 10, 25)),
-        src("blog", "aggregator", 3, title="ScholarBlog"),
-    ]  # fmt: skip
-    claims = [
-        gclaim("g1", "portal", "application_deadline", "31 October 2026"),
-        gclaim("g2", "guide", "application_deadline", "15.10.2026"),
-        gclaim("g3", "blog", "application_deadline", "15th Oct 2026"),
-        gclaim("g4", "notice", "benefit_amount", "Rs 12,000 per annum"),
-    ]
-    findings = Analysis(general, sources, claims, today=TODAY).run()
-    assert not [f for f in findings if f.type in {"notice", "mitc_missing"}]  # card-only rules
-    conflicts = [
-        f for f in findings if f.type == "conflict" and f.attribute == "application_deadline"
-    ]
-    assert conflicts
-    titles = " ".join(f.title for f in findings)
-    assert "the bank" not in titles
-    items = build_checklist(findings, {s.id: s for s in sources}, pack=general)
-    text = " ".join(i.text for i in items)
-    assert "the bank" not in text and "MITC" not in text
-
-
 @pytest.mark.parametrize(
     ("cond", "product", "expected"),
     [
         ("previously 1.5%", None, ""),  # history, not scope
         ("extended from 15 October 2026", None, ""),
         (
-            "National Means-cum-Merit (NMMSS)",
-            "National Means-cum-Merit Scholarship (NMMSS) 2026-27",
+            "Magnus (Axis Bank)",
+            "Axis Bank Magnus credit card",
             "",
         ),
         ("Magnus Burgundy variant", "Axis Bank Magnus credit card", "magnus burgundy variant"),

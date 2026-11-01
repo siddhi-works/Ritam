@@ -1,4 +1,4 @@
-# Known sources for popular cards and schemes, checked on 1 Nov 2026.
+# Known sources for popular cards, checked on 1 Nov 2026.
 # Re-check with: python -m app.discovery.check
 # kind: official_page | mitc_pdf | kfs_pdf | bank_notice | aggregator | news | rbi_rule
 cards:
@@ -65,15 +65,3 @@ cards:
       - {url: "https://www.au.bank.in/personal-banking/credit-cards/lit-credit-card", kind: official_page, title: "AU Bank: LIT card page", render: true}
       - {url: "https://www.bankbazaar.com/credit-card/au-bank-lit-credit-card.html", kind: aggregator, title: "BankBazaar: AU LIT"}
 
-# Schemes and scholarships (general pack).
-topics:
-  - id: nmmss-2026-27
-    bank: Ministry of Education
-    name: National Means-cum-Merit Scholarship (NMMSS) 2026-27
-    aliases: [nmmss, nmms, national means cum merit scholarship, means cum merit scholarship, nmms scholarship]
-    sources:
-      - {url: "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2305633", kind: bank_notice, title: "PIB (Ministry of Education): NMMSS 2026-27 deadline extended"}
-      - {url: "https://scholarships.gov.in/", kind: official_page, title: "National Scholarship Portal (NSP)"}
-      - {url: "https://thecsrjournal.in/education-ministry-nmmss-scholarship-deadline-extended-to-october-31", kind: news, title: "The CSR Journal: NMMSS deadline extended"}
-      - {url: "https://school.careers360.com/articles/nsp-scholarship-last-date-2026-27", kind: aggregator, title: "Careers360: NSP scholarship last dates 2026-27"}
-      - {url: "https://www.careerindia.com/news/nsp-2026-27-scholarship-portal-deadlines-verification-guide-011-66633.html", kind: aggregator, title: "CareerIndia: NSP 2026-27 deadlines guide"}

@@ -34,7 +34,7 @@ export default function Home() {
           <p className="mt-6 text-lg leading-relaxed text-ink/80">
             Name a credit card and ask your question. Ritam finds the bank&apos;s pages, terms and comparison sites,
             then shows what&apos;s missing, what disagrees and what&apos;s out of date, with the exact line from the
-            document behind every point. It works for scholarships and government schemes too.
+            document behind every point.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild size="lg" className="h-11 px-6 text-base">
@@ -63,7 +63,7 @@ export default function Home() {
           Finished audits on real documents
         </h2>
         <p className="mb-6 mt-2 max-w-prose text-mute">
-          Built from public Axis, HDFC and ICICI documents, and a government scholarship notice. They open instantly.
+          Built from public Axis, HDFC and ICICI documents. They open instantly.
         </p>
         <ExampleAudits />
       </section>

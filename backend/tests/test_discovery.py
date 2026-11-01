@@ -28,7 +28,7 @@ from app.discovery import (
             ("bank_notice", True),
         ),
         ("https://rbi.org.in/Scripts/NotificationUser.aspx?Id=12300", "", ("rbi_rule", True)),
-        ("https://scholarships.gov.in/", "National Scholarship Portal", ("official_page", True)),
+        ("https://www.india.gov.in/", "National Portal of India", ("official_page", True)),
         ("https://www.paisabazaar.com/hdfc-bank/millennia-credit-card/", "", ("aggregator", False)),
         ("https://www.technofino.in/community/threads/x", "", ("forum", False)),
         ("https://www.livemint.com/money/x", "", ("news", False)),
@@ -67,7 +67,7 @@ def test_match_card(text: str, card_id: str) -> None:
 
 
 def test_match_card_rejects_unrelated() -> None:
-    assert match_card("Post-matric scholarship for SC students") is None
+    assert match_card("Post-matric scholarship for SC students") is None  # not a card
     assert match_card("") is None
 
 
@@ -82,16 +82,19 @@ async def test_discover_catalogue_without_search() -> None:
 
 
 @respx.mock
-async def test_discover_searches_for_unknown_topic_and_tags_results() -> None:
+async def test_discover_searches_for_unknown_card_and_tags_results() -> None:
     route = respx.post("https://api.tavily.com/search").mock(
         return_value=httpx.Response(
             200,
             json={
                 "results": [
-                    {"url": "https://www.buddy4study.com/page/nsp", "title": "NSP guide"},
                     {
-                        "url": "https://scholarships.gov.in/public/schemeGuidelines",
-                        "title": "Guidelines",
+                        "url": "https://www.paisabazaar.com/indusind-bank/legend/",
+                        "title": "Legend review",
+                    },
+                    {
+                        "url": "https://www.indusind.bank.in/cards/legend.html",
+                        "title": "Legend card",
                     },
                     {"url": "javascript:alert(1)", "title": "bad"},
                 ]
@@ -101,9 +104,8 @@ async def test_discover_searches_for_unknown_topic_and_tags_results() -> None:
     search = TavilySearch("tvly-test")
     try:
         out = await discover(
-            question="Am I eligible?",
-            product="Post-matric scholarship",
-            pack="general",
+            question="What are the fees?",
+            product="IndusInd Legend",
             search=search,
         )
     finally:
@@ -113,8 +115,8 @@ async def test_discover_searches_for_unknown_topic_and_tags_results() -> None:
     assert sent.headers["Authorization"] == "Bearer tvly-test"
     urls = [c["url"] for c in out["candidates"]]
     assert urls == [
-        "https://scholarships.gov.in/public/schemeGuidelines",
-        "https://www.buddy4study.com/page/nsp",
+        "https://www.indusind.bank.in/cards/legend.html",
+        "https://www.paisabazaar.com/indusind-bank/legend/",
     ]  # deduplicated across queries, official first, non-http dropped
     assert out["searched"] is True and out["matched_card"] is None
 
@@ -164,13 +166,6 @@ def test_discover_endpoint_works_without_search_key() -> None:
     assert body["matched_card"] == "HDFC Bank Millennia credit card"
     assert body["search_available"] is False and len(body["candidates"]) == 4
     assert bad.status_code == 422
-
-
-def test_topics_match_only_in_the_general_pack() -> None:
-    topic = match_card("NMMS scholarship", pack="general")
-    assert topic is not None and topic.id == "nmmss-2026-27" and topic.pack == "general"
-    assert match_card("nmmss") is None  # not a credit card
-    assert match_card("hdfc millennia", pack="general") is None
 
 
 @pytest.mark.parametrize(
