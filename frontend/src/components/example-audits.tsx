@@ -32,15 +32,15 @@ export function ExampleAudits() {
     );
 
   return (
-    <ul className="divide-y divide-rule rounded-lg border border-rule bg-white">
+    <ul className="divide-y divide-rule rounded-lg border border-rule bg-surface">
       {items.map((a) => (
         <li key={a.id}>
           <Link
             href={`/audit/${a.id}`}
-            className="flex flex-col gap-1 px-4 py-4 hover:bg-paper sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-5"
+            className="flex flex-col gap-1 px-4 py-4 hover:bg-white/5 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-5"
           >
             <span className="text-[0.9375rem] font-medium text-ink">{a.question}</span>
-            <span className="shrink-0 text-sm text-mute">{a.findings ?? 0} findings</span>
+            <span className="shrink-0 text-sm text-mute">{a.findings ?? 0} {a.findings === 1 ? "finding" : "findings"}</span>
           </Link>
         </li>
       ))}

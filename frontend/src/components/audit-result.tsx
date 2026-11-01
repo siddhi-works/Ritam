@@ -71,7 +71,7 @@ export function AuditResult({ audit }: { audit: AuditOut }) {
           Overview
         </h2>
         {audit.summary && (
-          <div className="rounded-lg border border-rule bg-white p-5 sm:p-6">
+          <div className="rounded-lg border border-rule bg-surface p-5 sm:p-6">
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <LabelTag label="ai_suggestion" />
               <span className="text-sm text-ink/70">In plain words, written by AI from the findings</span>
@@ -106,7 +106,7 @@ export function AuditResult({ audit }: { audit: AuditOut }) {
             </div>
           </div>
           {shown.length === 0 ? (
-            <p className="rounded-lg border border-rule bg-white p-5 text-ink">
+            <p className="rounded-lg border border-rule bg-surface p-5 text-ink">
               {audit.findings.length === 0
                 ? "No gaps, conflicts or outdated information were found in these sources. That only covers what was checked; the bank's latest MITC is still the final word."
                 : "No findings with this label."}
@@ -149,7 +149,7 @@ function FilterChip({
       type="button"
       aria-pressed={active}
       className={`min-h-11 rounded-full border px-4 text-sm disabled:opacity-40 ${
-        active ? "border-ink bg-ink text-white" : "border-rule bg-white text-ink hover:border-ink"
+        active ? "border-neon bg-neon text-night" : "border-rule bg-surface text-ink hover:border-ink"
       }`}
       {...rest}
     >
@@ -169,7 +169,7 @@ function CoverageScore({ audit }: { audit: AuditOut }) {
   const c = audit.coverage;
   if (!c.total) return null;
   return (
-    <div className="rounded-lg border border-rule bg-white p-5 sm:p-6">
+    <div className="rounded-lg border border-rule bg-surface p-5 sm:p-6">
       <h3 className="text-[0.9375rem] font-medium text-mute">How complete is this card&apos;s information?</h3>
       <p className="mt-2 text-ink">
         <span className="text-[2rem] font-semibold leading-none tracking-tight">{c.official}</span>
@@ -202,7 +202,7 @@ const ACTION_ICONS = { check_page: SearchCheck, call_bank: Phone, grievance: Mai
 function Checklist({ items }: { items: ChecklistOut[] }) {
   if (!items.length) return null;
   return (
-    <aside aria-labelledby="checklist-title" className="rounded-lg border border-ink bg-white p-5 lg:sticky lg:top-6">
+    <aside aria-labelledby="checklist-title" className="rounded-lg border border-ink bg-surface p-5 lg:sticky lg:top-6">
       <h2 id="checklist-title" className="text-lg font-semibold text-ink">
         Verify next
       </h2>
@@ -238,8 +238,8 @@ function Checklist({ items }: { items: ChecklistOut[] }) {
 function Details({ title, children, defaultOpen = false }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <Collapsible open={open} onOpenChange={setOpen} className="rounded-lg border border-rule bg-white">
-      <CollapsibleTrigger className="flex w-full items-center justify-between px-5 py-4 text-left text-[1.0625rem] font-semibold text-ink hover:bg-paper">
+    <Collapsible open={open} onOpenChange={setOpen} className="rounded-lg border border-rule bg-surface">
+      <CollapsibleTrigger className="flex w-full items-center justify-between px-5 py-4 text-left text-[1.0625rem] font-semibold text-ink hover:bg-white/5">
         {title}
         <ChevronDown aria-hidden className={`size-5 transition-transform ${open ? "rotate-180" : ""}`} />
       </CollapsibleTrigger>

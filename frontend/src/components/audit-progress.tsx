@@ -109,15 +109,15 @@ export function AuditProgress({ auditId, sources, onDone }: { auditId: string; s
       <h2 id="progress-title" className="sr-only">
         Checking your card
       </h2>
-      <Working title={finished ? "Your report is ready" : "Checking your card"} percent={best.current} lines={lines} />
+      <Working title={finished ? "Your report is ready" : "Reading your card's papers"} percent={best.current} lines={lines} />
       <p className="text-sm text-ink/70">Usually about 2 minutes. Keep this page open; the report appears here by itself.</p>
       {sources.length > 0 && (
-        <div className="rounded-lg border border-rule bg-white px-5 py-4">
+        <div className="rounded-lg border border-rule bg-surface px-5 py-4">
           <h3 className="text-[0.9375rem] font-semibold text-ink">Ritam is reading these {sources.length} documents</h3>
           <SourceList sources={sources} />
         </div>
       )}
-      <details className="rounded-lg border border-rule bg-white">
+      <details className="rounded-lg border border-rule bg-surface">
         <summary className="cursor-pointer px-5 py-3 text-[0.9375rem] font-medium text-ink">See each step</summary>
         <ol className="space-y-3 px-5 pb-5">
           {rows.length === 0 && (

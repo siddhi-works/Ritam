@@ -11,7 +11,7 @@ export function Working({ percent, lines, title }: { percent: number; lines: str
   }, []);
   const pct = Math.max(1, Math.min(100, Math.round(percent)));
   return (
-    <div className="rounded-lg border border-rule bg-white p-5 sm:p-6">
+    <div className="rounded-lg border border-rule bg-surface p-5 sm:p-6">
       <div className="flex items-baseline justify-between gap-4">
         <p className="text-lg font-semibold text-ink" role="status">
           {title}

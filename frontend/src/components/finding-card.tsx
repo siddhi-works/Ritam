@@ -53,7 +53,7 @@ export function FindingCard({ finding, onOpen }: { finding: FindingOut; onOpen: 
   let lastHeading: string | undefined;
 
   return (
-    <article aria-labelledby={titleId} className="rounded-lg border border-rule bg-white">
+    <article aria-labelledby={titleId} className="rounded-lg border border-rule bg-surface">
       <div className="p-4 sm:p-5">
         <div className="mb-2 flex flex-wrap items-center gap-2">
           <LabelTag label={finding.label} />
@@ -67,7 +67,7 @@ export function FindingCard({ finding, onOpen }: { finding: FindingOut; onOpen: 
 
       {items.length > 0 && (
         <Collapsible open={open} onOpenChange={setOpen}>
-          <CollapsibleTrigger className="flex w-full items-center justify-between border-t border-rule px-4 py-3 text-left text-sm font-medium text-ink hover:bg-paper sm:px-5">
+          <CollapsibleTrigger className="flex w-full items-center justify-between border-t border-rule px-4 py-3 text-left text-sm font-medium text-ink hover:bg-white/5 sm:px-5">
             {open ? "Hide the evidence" : `Show the evidence (${items.length})`}
             <ChevronDown aria-hidden className={`size-4 transition-transform ${open ? "rotate-180" : ""}`} />
           </CollapsibleTrigger>

@@ -57,7 +57,7 @@ export function EvidenceSheet({ target, onClose }: { target: EvidenceTarget | nu
         side={desktop ? "right" : "bottom"}
         className={desktop ? "w-full gap-0 p-0 sm:max-w-2xl" : "h-[88vh] gap-0 p-0"}
       >
-        <SheetHeader className="border-b border-rule bg-white px-5 py-4">
+        <SheetHeader className="border-b border-rule bg-surface px-5 py-4">
           <SheetTitle className="pr-8 text-base leading-snug">{s ? sourceName(s) : "Loading source…"}</SheetTitle>
           <SheetDescription asChild>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-mute">
@@ -96,7 +96,7 @@ export function EvidenceSheet({ target, onClose }: { target: EvidenceTarget | nu
                   if (isTargetPage && !pageRef.current) pageRef.current = el;
                 }}
                 aria-label={`Page ${p.page_no}`}
-                className="mb-6 rounded-md border border-rule bg-white p-4"
+                className="mb-6 rounded-md border border-rule bg-surface p-4"
               >
                 {view.pages.length > 1 && <p className="mb-2 text-xs text-mute">Page {p.page_no}</p>}
                 <p className="whitespace-pre-wrap font-serif text-[0.9375rem] leading-[1.75] text-ink">

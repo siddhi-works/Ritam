@@ -35,12 +35,12 @@ export default function AuditPage({ params }: { params: Promise<{ id: string }> 
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <p className="mb-6 text-sm">
         <Link href="/" className="text-mute underline-offset-4 hover:text-ink hover:underline">
-          ← New check
+          ← Check another card
         </Link>
       </p>
       <ServerNotice state={server} />
       {error && (
-        <p role="alert" className="rounded-md border border-destructive bg-white px-4 py-3 text-destructive">
+        <p role="alert" className="rounded-md border border-destructive bg-surface px-4 py-3 text-destructive">
           {error}
         </p>
       )}

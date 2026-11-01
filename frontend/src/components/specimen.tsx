@@ -40,7 +40,7 @@ export function Specimen() {
   if (failed || server === "down") return null;
   if (!pair)
     return (
-      <div className="hidden rounded-lg border border-rule bg-white p-6 md:block" aria-busy="true" aria-label="Loading an example finding">
+      <div className="hidden rounded-lg border border-rule bg-surface p-6 md:block" aria-busy="true" aria-label="Loading an example finding">
         <Skeleton className="mb-3 h-4 w-40" />
         <Skeleton className="mb-2 h-5 w-full" />
         <Skeleton className="mb-6 h-5 w-4/5" />
@@ -52,7 +52,7 @@ export function Specimen() {
   const { finding, told, terms } = pair;
   const saidAt = finding.detail.said_at as string | undefined;
   return (
-    <figure className="relative rounded-lg border border-rule bg-white p-5 shadow-[0_1px_0_#d5dae1] sm:p-6">
+    <figure className="relative rounded-xl border border-ink/15 bg-surface p-5 shadow-[0_30px_80px_-30px_rgb(204_255_61/0.25)] sm:p-7">
       <figcaption className="mb-4 flex flex-wrap items-center gap-2 text-sm text-mute">
         <LabelTag label={finding.label} />
         <span>A real finding from an example report</span>
@@ -64,7 +64,7 @@ export function Specimen() {
             {told.source}
             {saidAt ? `, ${formatDate(saidAt)}` : ""}
           </p>
-          <p className="font-serif text-[1.0625rem] leading-relaxed text-ink">“{told.quote}”</p>
+          <p className="font-serif text-[1.0625rem] leading-relaxed text-ink/85">“{told.quote}”</p>
         </blockquote>
 
         <blockquote>
@@ -80,7 +80,7 @@ export function Specimen() {
 
       <p className="mt-5 border-t border-rule pt-4 text-[0.9375rem] text-ink">
         {finding.title}.{" "}
-        <Link href={`/audit/${pair.auditId}`} className="font-medium underline underline-offset-4">
+        <Link href={`/audit/${pair.auditId}`} className="font-medium text-neon underline underline-offset-4">
           Open this report
         </Link>
       </p>

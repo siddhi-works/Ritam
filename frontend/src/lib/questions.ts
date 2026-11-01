@@ -24,7 +24,7 @@ const RBI_FRAUD: QuestionLink = {
   href: "https://rbi.org.in/Scripts/NotificationUser.aspx?Id=11040",
 };
 const CYBERCRIME: QuestionLink = { label: "National cybercrime portal", href: "https://cybercrime.gov.in/" };
-const AUDIT: QuestionLink = { label: "Check your card with Ritam", href: "/#start" };
+const AUDIT: QuestionLink = { label: "Get a report on your card", href: "/#start" };
 
 // Rules quoted from the RBI Master Direction (updated 7 March 2024) and the 2017 customer
 // protection circular. Anything that depends on the bank is marked as such.

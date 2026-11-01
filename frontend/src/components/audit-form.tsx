@@ -93,7 +93,7 @@ export function AuditForm() {
   }
 
   async function start(sources: unknown[], productName: string | null) {
-    setBusy("Starting your check");
+    setBusy("Preparing your report");
     const res = await apiPost<{ audit_id: string }>("/api/audits", { question: askedQuestion(), product: productName, sources });
     router.push(`/audit/${res.audit_id}`);
   }
@@ -101,7 +101,7 @@ export function AuditForm() {
   async function check(e: React.FormEvent) {
     e.preventDefault();
     if (product.trim().length < 3 && !claim.trim()) {
-      setError("Type the card's name, for example HDFC Millennia, or paste a message about it.");
+      setError("Type your card's name, for example HDFC Millennia, or paste a message about it in step 3.");
       return;
     }
     setError(null);
@@ -183,20 +183,20 @@ export function AuditForm() {
       <form onSubmit={check} noValidate aria-describedby={`${formId}-error`} className="space-y-6">
         <div className="space-y-2">
           <Label htmlFor={`${formId}-p`} className="text-[1.0625rem]">
-            Which credit card?
+            1. Type your credit card&apos;s name
           </Label>
           <Input
             id={`${formId}-p`}
             value={product}
             onChange={(e) => setProduct(e.target.value)}
-            placeholder="e.g. HDFC Millennia, SBI SimplyCLICK"
+            placeholder="For example: HDFC Millennia, SBI SimplyCLICK"
             autoComplete="off"
-            className="h-12 bg-white text-base"
+            className="h-12 bg-surface text-base"
           />
         </div>
 
         <fieldset className="space-y-3">
-          <legend className="mb-1 text-[1.0625rem] font-medium">What do you want to know?</legend>
+          <legend className="mb-1 text-[1.0625rem] font-medium">2. What do you want to know? Tap one, or type your own</legend>
           <div className="flex flex-wrap gap-2">
             {QUICK_QUESTIONS.map((q) => (
               <button
@@ -205,7 +205,7 @@ export function AuditForm() {
                 aria-pressed={question === q}
                 onClick={() => setQuestion(question === q ? "" : q)}
                 className={`min-h-11 rounded-full border px-4 text-left text-[0.9375rem] ${
-                  question === q ? "border-ink bg-ink text-white" : "border-rule bg-white text-ink hover:border-ink"
+                  question === q ? "border-neon bg-neon text-night" : "border-rule bg-surface text-ink hover:border-ink"
                 }`}
               >
                 {q}
@@ -219,15 +219,15 @@ export function AuditForm() {
             id={`${formId}-q`}
             value={QUICK_QUESTIONS.includes(question) ? "" : question}
             onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Or type your own question, in your own words"
+            placeholder="Type your own question, in any words"
             rows={2}
-            className="bg-white text-base"
+            className="bg-surface text-base"
           />
         </fieldset>
 
         <div className="space-y-2">
           <Label htmlFor={`${formId}-c`} className="text-[1.0625rem]">
-            Got a message from your bank, or an ad? <span className="font-normal text-mute">(optional)</span>
+            3. Want to verify a message or an ad? <span className="font-normal text-mute">(optional)</span>
           </Label>
           <Textarea
             id={`${formId}-c`}
@@ -235,24 +235,24 @@ export function AuditForm() {
             onChange={(e) => setClaim(e.target.value)}
             placeholder="Paste an SMS or email from the bank, a line from an ad, or what customer care told you."
             rows={2}
-            className="bg-white text-base"
+            className="bg-surface text-base"
           />
-          <p className="text-sm text-ink/70">Ritam checks it against the bank&apos;s own terms.</p>
+          <p className="text-sm text-ink/70">Ritam tells you if it matches the bank&apos;s official papers.</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
           <Button type="submit" size="lg" className="h-12 px-7 text-base">
-            <Search aria-hidden /> Check my card
+            <Search aria-hidden /> Get my free report
           </Button>
           <button
             type="button"
             onClick={addOwnDocuments}
             className="min-h-11 text-[0.9375rem] text-ink underline underline-offset-4 hover:no-underline"
           >
-            I have my own documents
+            I have the bank&apos;s PDF or link
           </button>
         </div>
-        <p className="text-sm text-ink/70">Ritam finds the bank&apos;s documents itself. A full check takes about 2 minutes.</p>
+        <p className="text-sm text-ink/70">Ritam finds the bank&apos;s official papers for you. You&apos;ll see your report in about 2 minutes.</p>
         {errorLine}
       </form>
     );
@@ -287,7 +287,7 @@ export function AuditForm() {
       </div>
       <div className="flex flex-wrap items-center gap-4">
         <Button type="submit" size="lg" className="h-12 px-7 text-base">
-          Check my card
+          Get my free report
         </Button>
         <Button type="button" variant="ghost" onClick={() => setManual(null)}>
           <ArrowLeft aria-hidden /> Back
@@ -322,7 +322,7 @@ function SourceRow({
 }) {
   const id = useId();
   return (
-    <div className="rounded-md border border-rule bg-white p-3 sm:p-4">
+    <div className="rounded-md border border-rule bg-surface p-3 sm:p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
         <div role="radiogroup" aria-label={`Source ${index + 1} type`} className="flex flex-wrap gap-1.5">
           {MODES.map((m) => (
@@ -333,7 +333,7 @@ function SourceRow({
               aria-checked={row.mode === m.value}
               onClick={() => onChange({ mode: m.value })}
               className={`inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-sm ${
-                row.mode === m.value ? "border-ink bg-ink text-white" : "border-rule text-ink hover:border-ink"
+                row.mode === m.value ? "border-neon bg-neon text-night" : "border-rule text-ink hover:border-ink"
               }`}
             >
               <m.icon aria-hidden className="size-4" />

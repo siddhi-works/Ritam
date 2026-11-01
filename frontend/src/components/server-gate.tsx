@@ -43,7 +43,7 @@ export function useServerAwake(): "checking" | "waking" | "ready" | "down" {
 export function ServerNotice({ state }: { state: ReturnType<typeof useServerAwake> }) {
   if (state === "ready" || state === "checking") return null;
   return (
-    <p role="status" className="rounded-md border border-rule bg-white px-4 py-3 text-sm text-ink">
+    <p role="status" className="rounded-md border border-rule bg-surface px-4 py-3 text-sm text-ink">
       {state === "waking"
         ? "Waking Ritam's free server. This takes about a minute the first time; your page will work as soon as it's up."
         : "Ritam's server isn't answering. Please try again in a few minutes."}

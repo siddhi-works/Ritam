@@ -67,7 +67,7 @@ export function ReportCard({
 
   return (
     <section aria-labelledby="answer-title" className="space-y-6">
-      <div className="rounded-lg border border-ink bg-white p-5 sm:p-7">
+      <div className="rounded-lg border border-ink bg-surface p-5 sm:p-7">
         <h2 id="answer-title" className="text-sm font-medium text-ink/70">
           The short answer
         </h2>
@@ -79,7 +79,7 @@ export function ReportCard({
               type="button"
               onClick={() => onFilter(t.label)}
               disabled={t.n === 0}
-              className={`flex min-h-20 items-center gap-3 rounded-lg border-2 bg-white px-4 py-3 text-left hover:bg-paper disabled:opacity-60 ${t.cls}`}
+              className={`flex min-h-20 items-center gap-3 rounded-lg border-2 bg-surface px-4 py-3 text-left hover:bg-white/5 disabled:opacity-60 ${t.cls}`}
             >
               <t.icon aria-hidden className="size-6 shrink-0" />
               <span>
@@ -89,7 +89,7 @@ export function ReportCard({
               </span>
             </button>
           ))}
-          <div className="flex min-h-20 items-center gap-3 rounded-lg border-2 border-sourced bg-white px-4 py-3 text-sourced">
+          <div className="flex min-h-20 items-center gap-3 rounded-lg border-2 border-sourced bg-surface px-4 py-3 text-sourced">
             <CircleCheck aria-hidden className="size-6 shrink-0" />
             <span>
               <span className="block text-2xl font-semibold leading-none tabular-nums">
@@ -104,7 +104,7 @@ export function ReportCard({
       </div>
 
       {changes.length > 0 && (
-        <div className="rounded-lg border border-uncertain bg-white p-5 sm:p-6">
+        <div className="rounded-lg border border-uncertain bg-surface p-5 sm:p-6">
           <h2 className="text-lg font-semibold text-ink">What the bank&apos;s notice says is changing</h2>
           <p className="mt-1 text-sm text-ink/70">From the bank&apos;s own notice. Tap a line to see it in the document.</p>
           <ul className="mt-3 divide-y divide-rule">
@@ -126,7 +126,7 @@ export function ReportCard({
       )}
 
       {facts.length > 0 && (
-        <div className="rounded-lg border border-rule bg-white p-5 sm:p-6">
+        <div className="rounded-lg border border-rule bg-surface p-5 sm:p-6">
           <h2 className="text-lg font-semibold text-ink">Key facts about this card</h2>
           <p className="mt-1 text-sm text-ink/70">
             Official figures first. Tap a figure to see the exact line in the document.
@@ -161,7 +161,7 @@ export function ReportCard({
         </div>
       )}
 
-      <div className="rounded-lg border border-rule bg-white p-5 sm:p-6">
+      <div className="rounded-lg border border-rule bg-surface p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">Documents Ritam read ({audit.sources.length})</h2>
         <p className="mt-1 text-sm text-ink/70">Official documents first. Tap one to read it with the checked lines highlighted.</p>
         <SourceList sources={audit.sources} onOpen={(sourceId) => onOpen({ sourceId })} />

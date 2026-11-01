@@ -45,7 +45,7 @@ export default function QuestionsPage() {
           <a
             key={g.title}
             href={`#${slug(g.title)}`}
-            className="rounded-full border border-rule bg-white px-3 py-1.5 text-sm text-ink hover:border-ink"
+            className="rounded-full border border-rule bg-surface px-3 py-1.5 text-sm text-ink hover:border-ink"
           >
             {g.title}
           </a>
@@ -57,10 +57,10 @@ export default function QuestionsPage() {
           <h2 id={`${slug(g.title)}-h`} className="text-xl font-semibold text-ink">
             {g.title}
           </h2>
-          <div className="mt-4 divide-y divide-rule rounded-lg border border-rule bg-white">
+          <div className="mt-4 divide-y divide-rule rounded-lg border border-rule bg-surface">
             {g.questions.map((item) => (
               <details key={item.q} className="group">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-[1.0625rem] font-medium text-ink hover:bg-paper [&::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-[1.0625rem] font-medium text-ink hover:bg-white/5 [&::-webkit-details-marker]:hidden">
                   {item.q}
                   <ChevronDown aria-hidden className="size-5 shrink-0 text-mute transition-transform group-open:rotate-180" />
                 </summary>
@@ -82,7 +82,7 @@ export default function QuestionsPage() {
         </section>
       ))}
 
-      <section aria-labelledby="ask-bank" className="mt-12 rounded-lg border border-ink bg-white p-5 sm:p-6">
+      <section aria-labelledby="ask-bank" className="mt-12 rounded-lg border border-ink bg-surface p-5 sm:p-6">
         <h2 id="ask-bank" className="text-lg font-semibold text-ink">
           Only your bank can answer
         </h2>
