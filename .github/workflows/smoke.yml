@@ -21,9 +21,15 @@ jobs:
           curl -fsS --retry 4 --retry-delay 30 --max-time 120 "$API/livez"
           curl -fsS --max-time 60 "$API/health" | tee health.json
           python3 -c "import json;h=json.load(open('health.json'));assert h['components']['db']['status']=='ok', h"
-          curl -fsS --max-time 60 "$API/api/audits?demo_only=true" | tee demos.json
+          curl -fsS --max-time 60 "$API/api/audits" | tee demos.json
           ID=$(python3 -c "import json;d=json.load(open('demos.json'));assert d,'no demo audits';print(d[0]['id'])")
           curl -fsS --max-time 60 "$API/api/audits/$ID" | python3 -c "import json,sys;a=json.load(sys.stdin);assert a['findings'] and a['checklist'], 'demo audit has no findings/checklist'"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - name: Check the source catalogue's links still work
+        working-directory: backend
+        run: pip install -q . && python -m app.discovery.check
       - name: Report failure
         if: failure()
         env: { GH_TOKEN: "${{ github.token }}" }

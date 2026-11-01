@@ -50,9 +50,14 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 ऋतम्
               </span>
             </Link>
-            <Link href="/#start" className="text-sm font-medium text-ink underline-offset-4 hover:underline">
-              Start an audit
-            </Link>
+            <nav aria-label="Main" className="flex items-center gap-5 text-sm font-medium text-ink">
+              <Link href="/questions" className="underline-offset-4 hover:underline">
+                Questions
+              </Link>
+              <Link href="/#start" className="underline-offset-4 hover:underline">
+                Check my card
+              </Link>
+            </nav>
           </div>
         </header>
         <div id="main">{children}</div>

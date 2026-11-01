@@ -12,7 +12,7 @@
   --color-ink: #1b2430;
   --color-paper: #f7f8fa;
   --color-rule: #d5dae1;
-  --color-mute: #5b6573;
+  --color-mute: #4a5361;
   --color-highlight: #f3e25b;
   --color-sourced: #0f6b5c;
   --color-sourced-soft: #e3f1ee;
@@ -121,5 +121,12 @@
     to {
       background-size: 100% 100%;
     }
+  }
+}
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
   }
 }

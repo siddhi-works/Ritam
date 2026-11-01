@@ -201,6 +201,7 @@ async def discover(
     product: str | None,
     pack: str = "credit_card",
     search: TavilySearch | None,
+    context: str | None = None,
     limit: int = 8,
 ) -> dict[str, Any]:
     found: list[Candidate] = []
@@ -212,7 +213,10 @@ async def discover(
             seen.add(key)
             found.append(c)
 
-    card = match_card(product or question, pack=pack)
+    # Pasted text (a bank SMS, an ad) only helps identify the card; it is never sent to search.
+    card = next(
+        (c for t in (product, context, question) if t and (c := match_card(t, pack=pack))), None
+    )
     if card:
         for s in card.sources:
             kind, official = s["kind"], classify(s["url"])[1]
@@ -229,8 +233,8 @@ async def discover(
 
     searched = False
     errors: list[str] = []
-    if search is not None and (card is None or len(found) < 4):
-        topic = card.name if card else (product or question)
+    topic = card.name if card else product
+    if search is not None and topic and (card is None or len(found) < 4):
         for q, why in queries_for(topic, question, pack):
             try:
                 results = await search.search(q, max_results=5)

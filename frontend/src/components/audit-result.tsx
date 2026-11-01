@@ -6,11 +6,19 @@ import { useMemo, useState } from "react";
 import { EvidenceSheet, type EvidenceTarget } from "@/components/evidence-sheet";
 import { FindingCard } from "@/components/finding-card";
 import { LabelTag } from "@/components/label-tag";
+import { ReportCard } from "@/components/report-card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { AuditOut, ChecklistOut, Label } from "@/lib/api";
-import { ACTIONS, formatDate, LABELS, SOURCE_KINDS, sourceName, STEP_NAMES } from "@/lib/vocab";
+import { ACTIONS, formatDate, LABELS, sourceName, STEP_NAMES } from "@/lib/vocab";
 
 const CITE = /\s*\[[a-z_]+:[^\]]+\]/g;
+
+const sentences = (text: string) =>
+  text
+    .replace(/([.!?])\s+(?=[A-Z])/g, "$1\n")
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean);
 
 export function AuditResult({ audit }: { audit: AuditOut }) {
   const [filter, setFilter] = useState<Label | "all">("all");
@@ -49,17 +57,30 @@ export function AuditResult({ audit }: { audit: AuditOut }) {
         )}
       </header>
 
+      <ReportCard
+        audit={audit}
+        onOpen={setTarget}
+        onFilter={(l) => {
+          setFilter(l);
+          document.getElementById("findings-title")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }}
+      />
+
       <section aria-labelledby="overview-title" className="grid gap-6 lg:grid-cols-[1.25fr_1fr]">
         <h2 id="overview-title" className="sr-only">
           Overview
         </h2>
         {audit.summary && (
           <div className="rounded-lg border border-rule bg-white p-5 sm:p-6">
-            <div className="mb-3 flex items-center gap-2">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
               <LabelTag label="ai_suggestion" />
-              <span className="text-sm text-mute">Summary written by AI from the findings below</span>
+              <span className="text-sm text-ink/70">In plain words, written by AI from the findings</span>
             </div>
-            <p className="text-[1.0625rem] leading-relaxed text-ink">{audit.summary.text.replace(CITE, "")}</p>
+            <ul className="list-disc space-y-2 pl-5 text-[1.0625rem] leading-relaxed text-ink">
+              {sentences(audit.summary.text.replace(CITE, "")).map((s) => (
+                <li key={s}>{s}</li>
+              ))}
+            </ul>
           </div>
         )}
         <CoverageScore audit={audit} />
@@ -68,18 +89,20 @@ export function AuditResult({ audit }: { audit: AuditOut }) {
       <div className="grid items-start gap-8 lg:grid-cols-[1fr_22rem]">
         <section aria-labelledby="findings-title">
           <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-            <h2 id="findings-title" className="text-xl font-semibold tracking-tight text-ink">
+            <h2 id="findings-title" className="scroll-mt-6 text-xl font-semibold tracking-tight text-ink">
               What Ritam found ({audit.findings.length})
             </h2>
             <div role="group" aria-label="Filter findings by label" className="flex flex-wrap gap-1.5">
               <FilterChip active={filter === "all"} onClick={() => setFilter("all")}>
                 All {audit.findings.length}
               </FilterChip>
-              {(Object.keys(counts) as Label[]).map((l) => (
-                <FilterChip key={l} active={filter === l} onClick={() => setFilter(l)} disabled={counts[l] === 0}>
-                  {LABELS[l].name} {counts[l]}
-                </FilterChip>
-              ))}
+              {(Object.keys(counts) as Label[])
+                .filter((l) => counts[l] > 0)
+                .map((l) => (
+                  <FilterChip key={l} active={filter === l} onClick={() => setFilter(l)}>
+                    {LABELS[l].name} {counts[l]}
+                  </FilterChip>
+                ))}
             </div>
           </div>
           {shown.length === 0 ? (
@@ -97,17 +120,16 @@ export function AuditResult({ audit }: { audit: AuditOut }) {
           )}
         </section>
 
-        <Checklist items={audit.checklist} />
+        <div className="order-first lg:order-none">
+          <Checklist items={audit.checklist} />
+        </div>
       </div>
 
       <section aria-label="Details" className="space-y-3">
         <Details title="Everything Ritam read, by card feature" defaultOpen={false}>
           <CoverageTable audit={audit} onOpen={setTarget} />
         </Details>
-        <Details title={`Sources (${audit.sources.length})`}>
-          <SourcesList audit={audit} onOpen={setTarget} />
-        </Details>
-        <Details title="How this audit was checked">
+        <Details title="How Ritam checked this">
           <Trace audit={audit} />
         </Details>
       </section>
@@ -126,7 +148,7 @@ function FilterChip({
     <button
       type="button"
       aria-pressed={active}
-      className={`min-h-9 rounded-full border px-3 text-sm disabled:opacity-40 ${
+      className={`min-h-11 rounded-full border px-4 text-sm disabled:opacity-40 ${
         active ? "border-ink bg-ink text-white" : "border-rule bg-white text-ink hover:border-ink"
       }`}
       {...rest}
@@ -277,46 +299,6 @@ function CoverageTable({ audit, onOpen }: { audit: AuditOut; onOpen: (t: Evidenc
         </tbody>
       </table>
     </div>
-  );
-}
-
-function SourcesList({ audit, onOpen }: { audit: AuditOut; onOpen: (t: EvidenceTarget) => void }) {
-  return (
-    <ul className="divide-y divide-rule">
-      {audit.sources.map((s) => {
-        const warnings = (s.meta.warnings as string[] | undefined) ?? [];
-        return (
-          <li key={s.id} className="py-4 first:pt-0 last:pb-0">
-            <p className="font-medium text-ink">{sourceName(s)}</p>
-            <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-mute">
-              <span>{SOURCE_KINDS[s.kind] ?? s.kind}</span>
-              {s.effective_from && <span>Effective {formatDate(s.effective_from)}</span>}
-              {s.published_at && !s.effective_from && <span>Dated {formatDate(s.published_at)}</span>}
-              {s.undated && <span className="font-medium text-uncertain">No reliable date</span>}
-              {s.archived_at && <span>Archived copy from {formatDate(s.archived_at)}</span>}
-              {s.status === "failed" && <span className="font-medium text-destructive">Couldn&apos;t be read</span>}
-            </p>
-            {warnings.slice(0, 2).map((w) => (
-              <p key={w} className="mt-1 text-sm text-uncertain">{w}</p>
-            ))}
-            {s.error && <p className="mt-1 text-sm text-destructive">{s.error}</p>}
-            <div className="mt-2 flex flex-wrap gap-4 text-sm">
-              {s.status !== "failed" && (
-                <button type="button" onClick={() => onOpen({ sourceId: s.id })} className="font-medium text-ink underline underline-offset-4">
-                  Read the document
-                </button>
-              )}
-              {s.url && (
-                <a href={s.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-ink underline underline-offset-4">
-                  Original <ExternalLink aria-hidden className="size-3.5" />
-                  <span className="sr-only">(opens in a new tab)</span>
-                </a>
-              )}
-            </div>
-          </li>
-        );
-      })}
-    </ul>
   );
 }
 

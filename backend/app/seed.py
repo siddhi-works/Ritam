@@ -244,13 +244,8 @@ async def seed(demo_dir: Path, only: str | None) -> None:
             if only and case.slug != only:
                 continue
             async with sessionmaker() as session:
-                old = list(await session.scalars(
-                    select(Audit.id).where(Audit.is_demo.is_(True), Audit.product_name == case.product)
-                ))  # fmt: skip
-                if old:
-                    await session.execute(delete(Audit).where(Audit.id.in_(old)))
                 audit = Audit(id=uuid.uuid4(), question=case.question, product_name=case.product,
-                              pack=case.pack, status=AuditStatus.QUEUED, stats={}, is_demo=True)  # fmt: skip
+                              pack=case.pack, status=AuditStatus.QUEUED, stats={}, is_demo=False)  # fmt: skip
                 session.add(audit)
                 ids: list[uuid.UUID] = []
                 for item in case.sources:
@@ -274,6 +269,16 @@ async def seed(demo_dir: Path, only: str | None) -> None:
                                        store=store, settings=settings, pack=load_pack(case.pack))  # fmt: skip
                 print(f"[{case.slug}] {done.status.value}: {done.stats.get('findings')} findings, "
                       f"{done.stats.get('claims_verified')} verified claims")  # fmt: skip
+                if done.status == AuditStatus.FAILED:
+                    print(f"[{case.slug}] kept the previous example")
+                    continue
+                # Swap only after the new example finished, so a failed rebuild never loses one.
+                old = list(await session.scalars(
+                    select(Audit.id).where(Audit.is_demo.is_(True), Audit.product_name == case.product)
+                ))  # fmt: skip
+                await session.execute(delete(Audit).where(Audit.id.in_(old)))
+                done.is_demo = True
+                await session.commit()
     finally:
         await llm.aclose()
         await fetcher.aclose()

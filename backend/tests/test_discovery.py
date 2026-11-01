@@ -189,3 +189,26 @@ def test_match_card_tells_hdfc_and_idfc_millennia_apart() -> None:
 
 def test_social_media_is_not_an_aggregator() -> None:
     assert classify("https://www.facebook.com/kishtwaradministration/posts/1") == ("forum", False)
+
+
+async def test_card_is_detected_from_pasted_text_without_searching_it() -> None:
+    class Spy:
+        queries: list[str] = []
+
+        async def search(self, query: str, **kw: object) -> list[dict[str, str]]:
+            self.queries.append(query)
+            return []
+
+    sms = "Dear Customer, the reward cap on your HDFC Bank Millennia Credit Card will change from 01-12-2026."
+    spy = Spy()
+    out = await discover(question="What does this mean?", product=None, context=sms, search=spy)  # type: ignore[arg-type]
+    assert out["matched_card"] == "HDFC Bank Millennia credit card"
+    assert all("Dear Customer" not in q for q in spy.queries)
+
+    unknown = await discover(
+        question="What does this mean?",
+        product=None,
+        context="Your card fee changes soon.",
+        search=spy,
+    )  # type: ignore[arg-type]
+    assert unknown["matched_card"] is None and unknown["searched"] is False

@@ -38,13 +38,13 @@ export const MEANS: Record<string, string> = {
 };
 
 export const TYPE_NAMES: Record<string, string> = {
-  conflict: "Conflict",
+  conflict: "Sources disagree",
   stale: "Out of date",
   notice: "Notice period",
-  mitc_missing: "Missing from terms",
+  mitc_missing: "Missing from the bank's terms",
   unanswered: "Unanswered",
-  undated: "No date",
-  chat_mismatch: "Told vs written",
+  undated: "No date on it",
+  chat_mismatch: "What you were told",
   single_origin: "Copied source",
 };
 

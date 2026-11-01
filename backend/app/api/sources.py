@@ -7,12 +7,21 @@ from pydantic import BaseModel, Field, HttpUrl
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_session
+from app.api.deps import _Limiter, get_session
 from app.ingest.netguard import BlockedURL, check_url
 from app.ingest.service import AUTHORITY_TIER, IngestError, IngestInput, ingest
 from app.models import Claim, Source, SourceKind, SourcePage, SourceStatus
 
 router = APIRouter(prefix="/api", tags=["sources"])
+_limiter = _Limiter(limit=30, window_s=3600)
+
+
+def _rate_limit(request: Request) -> None:
+    client = request.client.host if request.client else "unknown"
+    if not _limiter.allow(client):
+        raise HTTPException(429, "Too many uploads from this address; try again in an hour.")
+
+
 Session = Annotated[AsyncSession, Depends(get_session)]
 
 UPLOAD_KINDS = {k for k in SourceKind if k != SourceKind.USER_CHAT}
@@ -117,6 +126,7 @@ async def upload(
     title: Annotated[str | None, Form(max_length=500)] = None,
 ) -> SourceOut:
     """Upload a PDF, saved HTML page (Ctrl+S) or text file."""
+    _rate_limit(request)
     settings = request.app.state.settings
     if kind not in UPLOAD_KINDS:
         raise HTTPException(422, "use POST /api/sources/text for customer-care chats")
@@ -143,6 +153,7 @@ async def upload(
 @router.post("/sources/text", response_model=SourceOut, status_code=status.HTTP_201_CREATED)
 async def add_text(request: Request, session: Session, payload: TextSourceIn) -> SourceOut:
     """Paste text, or a customer-care chat (personal identifiers are masked before storage)."""
+    _rate_limit(request)
     settings = request.app.state.settings
     if len(payload.text) > settings.max_text_chars:
         raise HTTPException(413, f"text exceeds {settings.max_text_chars} characters")
@@ -164,6 +175,7 @@ async def add_text(request: Request, session: Session, payload: TextSourceIn) ->
 @router.post("/sources/url", response_model=SourceOut, status_code=status.HTTP_202_ACCEPTED)
 async def add_url(request: Request, session: Session, payload: UrlSourceIn) -> SourceOut:
     """Queue a URL for fetching (httpx → headless browser → Wayback). Poll GET /api/sources/{id}."""
+    _rate_limit(request)
     try:
         url = await check_url(str(payload.url))
     except BlockedURL as exc:

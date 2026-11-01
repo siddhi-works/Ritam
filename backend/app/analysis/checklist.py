@@ -82,6 +82,11 @@ def _entry(
                 f"Ignore the outdated figure; confirm the {label} in {issuer}'s own latest {terms}.",
                 "check_page",
             )
+        case "mitc_missing" if f.subtype == "mentioned_group":
+            pages = ", ".join(str(p) for p in f.detail.get("pages", []))
+            names = ", ".join(i["label"].lower() for i in f.detail.get("items", []))
+            return (f"Open the card's terms ({terms}) at page {pages} and look for: {names}. If they aren't "
+                    f"clearly stated for your card, ask {issuer} in writing."), "check_page"  # fmt: skip
         case "mitc_missing":
             return (f"Find the {label} in the card's Most Important Terms and Conditions, or ask the bank "
                     "for it in writing."), "call_bank"  # fmt: skip

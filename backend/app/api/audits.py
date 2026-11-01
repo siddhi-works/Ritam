@@ -1,7 +1,6 @@
 import json
-import time
 import uuid
-from collections import defaultdict, deque
+from collections import defaultdict
 from collections.abc import AsyncIterator
 from datetime import date, datetime
 from typing import Annotated, Any, Literal
@@ -12,7 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sse_starlette.sse import EventSourceResponse
 
-from app.api.deps import get_session
+from app.api.deps import _Limiter, get_session
 from app.api.sources import SourceOut
 from app.extract.prompt import scope_key
 from app.ingest.netguard import BlockedURL, check_url
@@ -69,23 +68,6 @@ class AuditCreated(BaseModel):
     audit_id: uuid.UUID
     status: AuditStatus
     runner: str
-
-
-class _Limiter:
-    """Sliding-window rate limit per client IP."""
-
-    def __init__(self, limit: int, window_s: float):
-        self.limit, self.window = limit, window_s
-        self.hits: dict[str, deque[float]] = defaultdict(deque)
-
-    def allow(self, key: str) -> bool:
-        now, q = time.monotonic(), self.hits[key]
-        while q and now - q[0] > self.window:
-            q.popleft()
-        if len(q) >= self.limit:
-            return False
-        q.append(now)
-        return True
 
 
 _limiter = _Limiter(limit=10, window_s=3600)
@@ -345,12 +327,14 @@ class AuditListItem(BaseModel):
 
 
 @router.get("", response_model=list[AuditListItem])
-async def list_audits(
-    session: Session, demo_only: bool = False, limit: int = 20
-) -> list[AuditListItem]:
-    q = select(Audit).order_by(Audit.is_demo.desc(), Audit.created_at.desc()).limit(min(limit, 50))
-    if demo_only:
-        q = q.where(Audit.is_demo.is_(True))
+async def list_audits(session: Session, limit: int = 20) -> list[AuditListItem]:
+    """Example reports only. A user's report is reachable only through its own (random) link."""
+    q = (
+        select(Audit)
+        .where(Audit.is_demo.is_(True))
+        .order_by(Audit.created_at.desc())
+        .limit(min(limit, 50))
+    )
     return [
         AuditListItem(
             id=a.id,

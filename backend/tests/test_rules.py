@@ -113,10 +113,11 @@ def test_undated_and_redirect(findings: list[Finding]) -> None:
 
 def test_missing_mitc_terms_use_the_absence_check(findings: list[Finding]) -> None:
     missing = {f.attribute: f for f in findings if f.type == "mitc_missing"}
-    # Mentioned in the MITC text but never extracted → "check page", not "not found".
-    assert missing["card_closure"].subtype == "mentioned_unextracted"
-    assert missing["card_closure"].label == "uncertain"
-    assert missing["notice_period"].subtype == "mentioned_unextracted"
+    # Mentioned in the MITC text but never extracted → one grouped "check these pages" finding.
+    group = next(f for f in findings if f.subtype == "mentioned_group")
+    assert group.label == "uncertain" and group.key == "mitc_missing:mentioned"
+    assert {"card_closure", "notice_period"} <= {i["attribute"] for i in group.detail["items"]}
+    assert group.detail["pages"]
     # Never mentioned anywhere → a sourced absence.
     assert missing["late_payment_fee"].subtype == "absent"
     assert "not found in 2 page(s)" in missing["late_payment_fee"].title

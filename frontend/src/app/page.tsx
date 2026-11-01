@@ -38,10 +38,10 @@ export default function Home() {
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild size="lg" className="h-11 px-6 text-base">
-              <a href="#start">Start an audit</a>
+              <a href="#start">Check my card</a>
             </Button>
             <Button asChild size="lg" variant="outline" className="h-11 bg-white px-6 text-base">
-              <a href="#examples">See finished audits</a>
+              <a href="#examples">See example reports</a>
             </Button>
           </div>
         </div>
@@ -50,17 +50,17 @@ export default function Home() {
 
       <section id="start" className="scroll-mt-6 border-t border-rule py-12" aria-labelledby="start-title">
         <h2 id="start-title" className="text-2xl font-semibold tracking-tight text-ink">
-          Start an audit
+          Check your card
         </h2>
         <p className="mb-8 mt-2 max-w-prose text-mute">
-          Name what you want checked and ask one question. Ritam finds the sources; you confirm them before it starts.
+          Type the card&apos;s name and pick a question. Ritam finds the bank&apos;s documents and reads them for you.
         </p>
         <AuditForm />
       </section>
 
       <section id="examples" className="scroll-mt-6 border-t border-rule py-12" aria-labelledby="examples-title">
         <h2 id="examples-title" className="text-2xl font-semibold tracking-tight text-ink">
-          Finished audits on real documents
+          Example reports on real documents
         </h2>
         <p className="mb-6 mt-2 max-w-prose text-mute">
           Built from public Axis, HDFC and ICICI documents. They open instantly.

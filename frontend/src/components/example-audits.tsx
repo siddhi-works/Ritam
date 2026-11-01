@@ -14,7 +14,7 @@ export function ExampleAudits() {
 
   useEffect(() => {
     if (server !== "ready") return;
-    apiGet<AuditListItem[]>("/api/audits?demo_only=true")
+    apiGet<AuditListItem[]>("/api/audits")
       .then(setItems)
       .catch(() => setFailed(true));
   }, [server]);

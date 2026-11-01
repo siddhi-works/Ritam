@@ -3,7 +3,7 @@ from typing import Any, Literal
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from app.api.audits import _Limiter
+from app.api.deps import _Limiter
 from app.discovery import SearchBudgetExhausted, TavilySearch, discover
 from app.llm.budget import SqlBudget
 
@@ -15,6 +15,7 @@ _limiter = _Limiter(limit=20, window_s=3600)
 class DiscoverIn(BaseModel):
     question: str = Field(min_length=3, max_length=1000)
     product: str | None = Field(default=None, max_length=200)
+    context: str | None = Field(default=None, max_length=4000)
     pack: Literal["credit_card"] = "credit_card"
 
 
@@ -50,6 +51,7 @@ async def discover_sources(request: Request, payload: DiscoverIn) -> dict[str, A
             product=(payload.product or "").strip() or None,
             pack=payload.pack,
             search=search,
+            context=(payload.context or "").strip() or None,
         )
     finally:
         if search is not None:

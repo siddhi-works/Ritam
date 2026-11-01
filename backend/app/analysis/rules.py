@@ -469,12 +469,13 @@ class Analysis:
         }
         page_count = sum(len(s.pages) for s in terms)
         out: list[Finding] = []
+        mentioned: list[Finding] = []
         for spec in self.pack.attributes:
             if not spec.mitc_required or spec.key in have:
                 continue
             mentions = find_mentions(spec.keywords, [(s.id, s.pages) for s in terms])
             if mentions:
-                out.append(
+                mentioned.append(
                     Finding(
                         type="mitc_missing",
                         subtype="mentioned_unextracted",
@@ -512,7 +513,43 @@ class Analysis:
                         key=f"mitc_missing:{spec.key}",
                     )
                 )
-        return out
+        return out + self._group_mentioned(mentioned)
+
+    def _group_mentioned(self, items: list[Finding]) -> list[Finding]:
+        # Multi-card terms documents mention many charges without a value for this card; one
+        # finding reads better than six near-identical ones.
+        if len(items) < 2:
+            return items
+        pages = sorted({m["page_no"] for f in items for m in f.detail["mentions"][:1]})
+        labels = [self._label(f.attribute or "") for f in items]
+        return [
+            Finding(
+                type="mitc_missing",
+                subtype="mentioned_group",
+                rule_id="mitc_missing.mentioned",
+                label="uncertain",
+                severity=max(f.severity for f in items),
+                confidence=0.4,
+                title=(
+                    f"{len(items)} terms are mentioned in the card's terms but not clearly stated for "
+                    f"this card: {', '.join(labels)}"
+                ),
+                detail={
+                    "items": [
+                        {
+                            "attribute": f.attribute,
+                            "label": lbl,
+                            "page_no": f.detail["mentions"][0]["page_no"],
+                        }
+                        for f, lbl in zip(items, labels, strict=True)
+                    ],
+                    "pages": pages,
+                    "mentions": [f.detail["mentions"][0] for f in items],
+                },
+                source_ids=sorted({s for f in items for s in f.source_ids}),
+                key="mitc_missing:mentioned",
+            )
+        ]
 
     def unanswered(self) -> list[Finding]:
         """Sub-questions (from the AI planner) that no verified claim answers."""

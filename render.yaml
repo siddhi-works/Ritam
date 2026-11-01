@@ -24,8 +24,8 @@ services:
         value: jina
       - key: INTERNAL_TOKEN     # shared with GitHub Actions secret RITAM_INTERNAL_TOKEN
         generateValue: true
-      - key: CORS_ORIGIN_REGEX  # Vercel production + preview URLs of the "ritam" project
-        value: https://ritam[a-z0-9-]*\.vercel\.app
+      - key: CORS_ORIGIN_REGEX  # the production site only
+        value: https://ritam-ten\.vercel\.app
       - key: DATABASE_URL       # Neon main branch, non-pooled string exactly as Neon shows it
         sync: false
       - key: GEMINI_API_KEY

@@ -1,18 +1,6 @@
 "use client";
 
-import {
-  ArrowLeft,
-  ExternalLink,
-  FileUp,
-  Globe,
-  Link2,
-  MessageSquareText,
-  Plus,
-  Search,
-  ShieldCheck,
-  TextCursorInput,
-  X,
-} from "lucide-react";
+import { ArrowLeft, FileUp, Link2, MessageSquareText, Plus, Search, TextCursorInput, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 
@@ -21,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { apiPost, problemMessage, uploadFile, type Candidate, type DiscoverOut } from "@/lib/api";
+import { useCreep, Working } from "@/components/working";
+import { apiPost, problemMessage, uploadFile, type DiscoverOut } from "@/lib/api";
 import { ADDABLE_KINDS, SOURCE_KINDS } from "@/lib/vocab";
 
 type Mode = "link" | "file" | "text" | "chat";
@@ -42,6 +31,21 @@ const MODES: { value: Mode; label: string; icon: typeof Link2 }[] = [
   { value: "chat", label: "What you were told", icon: MessageSquareText },
 ];
 
+const QUICK_QUESTIONS = [
+  "Tell me everything important about this card",
+  "Are the fees and charges correct?",
+  "Did the benefits or charges change recently?",
+  "What should I check before applying?",
+];
+
+const FINDING_LINES = [
+  "Looking the card up in Ritam's checked list",
+  "Finding the bank's official card page",
+  "Looking for the card's terms and charges (MITC)",
+  "Checking comparison sites for the same card",
+  "Collecting everything in one place",
+];
+
 const MAX_SOURCES = 12;
 
 let nextId = 1;
@@ -55,14 +59,6 @@ const newRow = (mode: Mode = "link"): Row => ({
   saidAt: "",
 });
 
-const hostOf = (url: string) => {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return url;
-  }
-};
-
 const isFilled = (r: Row) =>
   Boolean((r.mode === "link" && r.url.trim()) || (r.mode === "file" && r.file) || ((r.mode === "text" || r.mode === "chat") && r.text.trim()));
 
@@ -71,86 +67,96 @@ export function AuditForm() {
   const formId = useId();
   const [question, setQuestion] = useState("");
   const [product, setProduct] = useState("");
-  const [found, setFound] = useState<DiscoverOut | null>(null);
-  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [claim, setClaim] = useState("");
+  const [manual, setManual] = useState<DiscoverOut | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const reviewHeading = useRef<HTMLHeadingElement>(null);
-  const reviewing = found !== null;
+  const manualHeading = useRef<HTMLHeadingElement>(null);
+  const percent = useCreep(busy !== null, 95, 12);
 
   useEffect(() => {
-    if (reviewing) reviewHeading.current?.focus();
-  }, [reviewing]);
+    if (manual) manualHeading.current?.focus();
+  }, [manual]);
+
+  // The form collapses into a progress box; keep it in view.
+  useEffect(() => {
+    if (busy) document.getElementById("start")?.scrollIntoView({ block: "start" });
+  }, [busy]);
 
   const update = (id: number, patch: Partial<Row>) => setRows((rs) => rs.map((r) => (r.id === id ? { ...r, ...patch } : r)));
-  const total = picked.size + rows.filter(isFilled).length;
+  const askedQuestion = () => question.trim() || (claim.trim() ? "What does this mean for me, and is it correct?" : QUICK_QUESTIONS[0]);
 
-  function checkQuestion(): string | null {
-    if (question.trim().length < 5) return "Write your question in a few words first.";
-    return null;
+  function claimSource(): unknown[] {
+    if (!claim.trim()) return [];
+    return [{ type: "text", kind: "user_chat", text: claim.trim(), title: "Message to check", said_at: new Date().toISOString().slice(0, 10) }];
   }
 
-  async function findSources(e: React.FormEvent) {
+  async function start(sources: unknown[], productName: string | null) {
+    setBusy("Starting your check");
+    const res = await apiPost<{ audit_id: string }>("/api/audits", { question: askedQuestion(), product: productName, sources });
+    router.push(`/audit/${res.audit_id}`);
+  }
+
+  async function check(e: React.FormEvent) {
     e.preventDefault();
-    const problem =
-      checkQuestion() ??
-      (product.trim().length < 3 ? "Tell Ritam which card to check." : null);
-    setError(problem);
-    if (problem) return;
-    setBusy("Finding sources…");
+    if (product.trim().length < 3 && !claim.trim()) {
+      setError("Type the card's name, for example HDFC Millennia, or paste a message about it.");
+      return;
+    }
+    setError(null);
+    setBusy("Finding the right documents");
     try {
-      const res = await apiPost<DiscoverOut>("/api/discover", { question: question.trim(), product: product.trim() });
-      setFound(res);
-      setPicked(new Set(res.candidates.slice(0, MAX_SOURCES).map((c) => c.url)));
-      if (res.candidates.length === 0 && rows.length === 0) setRows([newRow("link")]);
+      const found = await apiPost<DiscoverOut>("/api/discover", {
+        question: askedQuestion(),
+        product: product.trim() || null,
+        context: claim.trim() || null,
+      });
+      const urls = found.candidates
+        .slice(0, MAX_SOURCES - 1)
+        .map((c) => ({ type: "url", url: c.url, kind: c.kind, title: c.title }));
+      if (urls.length === 0) {
+        setManual(found);
+        setRows((rs) => (rs.length ? rs : [newRow("link")]));
+        setBusy(null);
+        return;
+      }
+      await start([...urls, ...claimSource()], found.matched_card ?? (product.trim() || null));
     } catch (err) {
       setError(problemMessage(err));
-    } finally {
       setBusy(null);
     }
   }
 
   function addOwnDocuments() {
-    const problem = checkQuestion();
-    setError(problem);
-    if (problem) return;
-    setFound({ candidates: [], matched_card: null, searched: false, search_available: true, errors: [] });
-    setPicked(new Set());
-    if (rows.length === 0) setRows([newRow("link")]);
+    setError(null);
+    setManual({ candidates: [], matched_card: null, searched: false, search_available: true, errors: [] });
+    setRows((rs) => (rs.length ? rs : [newRow("link")]));
   }
 
-  async function startAudit(e: React.FormEvent) {
+  async function startManual(e: React.FormEvent) {
     e.preventDefault();
+    const filled = rows.filter(isFilled);
     let problem: string | null = null;
-    if (total === 0) problem = "Tick at least one source, or add your own.";
-    else if (total > MAX_SOURCES) problem = `Choose at most ${MAX_SOURCES} sources; untick some first.`;
+    if (filled.length === 0 && !claim.trim()) problem = "Add at least one link, file or piece of text.";
     else if (rows.some((r) => r.mode === "link" && r.url.trim() && !/^https?:\/\//i.test(r.url.trim())))
       problem = "Links must start with http:// or https://";
     setError(problem);
     if (problem) return;
     try {
-      const sources: unknown[] = (found?.candidates ?? [])
-        .filter((c) => picked.has(c.url))
-        .map((c) => ({ type: "url", url: c.url, kind: c.kind, title: c.title }));
-      for (const r of rows) {
-        if (r.mode === "link" && r.url.trim()) sources.push({ type: "url", url: r.url.trim(), kind: r.kind });
+      const sources: unknown[] = claimSource();
+      for (const r of filled) {
+        if (r.mode === "link") sources.push({ type: "url", url: r.url.trim(), kind: r.kind });
         if (r.mode === "file" && r.file) {
-          setBusy(`Uploading ${r.file.name}…`);
+          setBusy(`Uploading ${r.file.name}`);
           const s = await uploadFile(r.file, r.kind);
           sources.push({ type: "source", id: s.id });
         }
-        if (r.mode === "text" && r.text.trim()) sources.push({ type: "text", kind: "user_upload", text: r.text });
-        if (r.mode === "chat" && r.text.trim())
+        if (r.mode === "text") sources.push({ type: "text", kind: "user_upload", text: r.text });
+        if (r.mode === "chat")
           sources.push({ type: "text", kind: "user_chat", text: r.text, title: "What you were told", said_at: r.saidAt || null });
       }
-      setBusy("Starting the audit…");
-      const res = await apiPost<{ audit_id: string }>("/api/audits", {
-        question: question.trim(),
-        product: found?.matched_card ?? (product.trim() || null),
-        sources,
-      });
-      router.push(`/audit/${res.audit_id}`);
+      await start(sources.slice(0, MAX_SOURCES), manual?.matched_card ?? (product.trim() || null));
     } catch (err) {
       setError(problemMessage(err));
       setBusy(null);
@@ -163,42 +169,80 @@ export function AuditForm() {
     </p>
   );
 
-  if (!found) {
+  if (busy)
     return (
-      <form onSubmit={findSources} noValidate aria-describedby={`${formId}-error`} className="space-y-6">
-        <div className="grid gap-5 md:grid-cols-[1fr_1.4fr]">
-          <div className="space-y-2">
-            <Label htmlFor={`${formId}-p`} className="text-[0.9375rem]">
-              Which card?
-            </Label>
-            <Input
-              id={`${formId}-p`}
-              value={product}
-              onChange={(e) => setProduct(e.target.value)}
-              placeholder="e.g. HDFC Millennia"
-              autoComplete="off"
-              className="bg-white text-base"
-            />
-            <p className="text-sm text-mute">Popular cards are on Ritam&apos;s checked list. Others are looked up on the web.</p>
+      <Working
+        title={busy}
+        percent={percent}
+        lines={busy.startsWith("Finding") ? FINDING_LINES : ["Getting your report ready", "Opening the progress page"]}
+      />
+    );
+
+  if (!manual) {
+    return (
+      <form onSubmit={check} noValidate aria-describedby={`${formId}-error`} className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor={`${formId}-p`} className="text-[1.0625rem]">
+            Which credit card?
+          </Label>
+          <Input
+            id={`${formId}-p`}
+            value={product}
+            onChange={(e) => setProduct(e.target.value)}
+            placeholder="e.g. HDFC Millennia, SBI SimplyCLICK"
+            autoComplete="off"
+            className="h-12 bg-white text-base"
+          />
+        </div>
+
+        <fieldset className="space-y-3">
+          <legend className="mb-1 text-[1.0625rem] font-medium">What do you want to know?</legend>
+          <div className="flex flex-wrap gap-2">
+            {QUICK_QUESTIONS.map((q) => (
+              <button
+                key={q}
+                type="button"
+                aria-pressed={question === q}
+                onClick={() => setQuestion(question === q ? "" : q)}
+                className={`min-h-11 rounded-full border px-4 text-left text-[0.9375rem] ${
+                  question === q ? "border-ink bg-ink text-white" : "border-rule bg-white text-ink hover:border-ink"
+                }`}
+              >
+                {q}
+              </button>
+            ))}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor={`${formId}-q`} className="text-[0.9375rem]">
-              What do you want to know?
-            </Label>
-            <Textarea
-              id={`${formId}-q`}
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Did this card's fees or benefits change, and was I told in time?"
-              rows={3}
-              className="bg-white text-base"
-            />
-          </div>
+          <Label htmlFor={`${formId}-q`} className="sr-only">
+            Or type your own question
+          </Label>
+          <Textarea
+            id={`${formId}-q`}
+            value={QUICK_QUESTIONS.includes(question) ? "" : question}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder="Or type your own question, in your own words"
+            rows={2}
+            className="bg-white text-base"
+          />
+        </fieldset>
+
+        <div className="space-y-2">
+          <Label htmlFor={`${formId}-c`} className="text-[1.0625rem]">
+            Got a message from your bank, or an ad? <span className="font-normal text-mute">(optional)</span>
+          </Label>
+          <Textarea
+            id={`${formId}-c`}
+            value={claim}
+            onChange={(e) => setClaim(e.target.value)}
+            placeholder="Paste an SMS or email from the bank, a line from an ad, or what customer care told you."
+            rows={2}
+            className="bg-white text-base"
+          />
+          <p className="text-sm text-ink/70">Ritam checks it against the bank&apos;s own terms.</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-          <Button type="submit" size="lg" disabled={!!busy} className="h-11 px-6 text-base">
-            <Search aria-hidden /> {busy ?? "Find sources"}
+          <Button type="submit" size="lg" className="h-12 px-7 text-base">
+            <Search aria-hidden /> Check my card
           </Button>
           <button
             type="button"
@@ -208,154 +252,61 @@ export function AuditForm() {
             I have my own documents
           </button>
         </div>
+        <p className="text-sm text-ink/70">Ritam finds the bank&apos;s documents itself. A full check takes about 2 minutes.</p>
         {errorLine}
       </form>
     );
   }
 
-  const cands = found.candidates;
   return (
-    <form onSubmit={startAudit} noValidate aria-describedby={`${formId}-error`} className="space-y-6">
+    <form onSubmit={startManual} noValidate aria-describedby={`${formId}-error`} className="space-y-6">
       <div className="space-y-1">
-        <h3 ref={reviewHeading} tabIndex={-1} className="text-lg font-semibold outline-none">
-          {cands.length ? `Ritam found ${cands.length} source${cands.length === 1 ? "" : "s"}` : "Add the sources to check"}
+        <h3 ref={manualHeading} tabIndex={-1} className="text-lg font-semibold outline-none">
+          Add the documents to check
         </h3>
-        <p className="text-[0.9375rem] text-mute">
-          <FoundNote found={found} product={product} />
+        <p className="text-[0.9375rem] text-ink/75">
+          <ManualNote found={manual} product={product} />
         </p>
       </div>
-
-      {cands.length > 0 && (
-        <fieldset>
-          <legend className="sr-only">Sources to include in the audit</legend>
-          <ul className="divide-y divide-rule rounded-md border border-rule bg-white">
-            {cands.map((c) => (
-              <CandidateRow
-                key={c.url}
-                c={c}
-                checked={picked.has(c.url)}
-                onToggle={(on) =>
-                  setPicked((s) => {
-                    const n = new Set(s);
-                    if (on) n.add(c.url);
-                    else n.delete(c.url);
-                    return n;
-                  })
-                }
-              />
-            ))}
-          </ul>
-        </fieldset>
-      )}
-
-      <section aria-labelledby={`${formId}-own`} className="space-y-3">
-        <h4 id={`${formId}-own`} className="text-[0.9375rem] font-medium">
-          Add your own source <span className="font-normal text-mute">(optional)</span>
-        </h4>
-        <p className="text-sm text-mute">What customer care told you, or a letter or email from the bank, lets Ritam check it against the written terms.</p>
-        {rows.map((r, i) => (
-          <SourceRow
-            key={r.id}
-            row={r}
-            index={i}
-            onChange={(p) => update(r.id, p)}
-            onRemove={() => setRows((rs) => rs.filter((x) => x.id !== r.id))}
-          />
-        ))}
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="outline" onClick={() => setRows((rs) => [...rs, newRow("link")])} disabled={total >= MAX_SOURCES}>
-            <Plus aria-hidden /> Add a link or file
-          </Button>
-          <Button type="button" variant="outline" onClick={() => setRows((rs) => [...rs, newRow("chat")])} disabled={total >= MAX_SOURCES}>
-            <MessageSquareText aria-hidden /> Paste what you were told
-          </Button>
-        </div>
-      </section>
-
+      {rows.map((r, i) => (
+        <SourceRow
+          key={r.id}
+          row={r}
+          index={i}
+          onChange={(p) => update(r.id, p)}
+          onRemove={rows.length > 1 ? () => setRows((rs) => rs.filter((x) => x.id !== r.id)) : undefined}
+        />
+      ))}
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" variant="outline" onClick={() => setRows((rs) => [...rs, newRow("link")])} disabled={rows.length >= MAX_SOURCES}>
+          <Plus aria-hidden /> Add a link or file
+        </Button>
+        <Button type="button" variant="outline" onClick={() => setRows((rs) => [...rs, newRow("chat")])} disabled={rows.length >= MAX_SOURCES}>
+          <MessageSquareText aria-hidden /> Paste what you were told
+        </Button>
+      </div>
       <div className="flex flex-wrap items-center gap-4">
-        <Button type="submit" size="lg" disabled={!!busy || total === 0} className="h-11 px-6 text-base">
-          {busy ? "Working…" : `Start audit with ${total} source${total === 1 ? "" : "s"}`}
+        <Button type="submit" size="lg" className="h-12 px-7 text-base">
+          Check my card
         </Button>
-        <Button type="button" variant="ghost" onClick={() => setFound(null)} disabled={!!busy}>
-          <ArrowLeft aria-hidden /> Change question
+        <Button type="button" variant="ghost" onClick={() => setManual(null)}>
+          <ArrowLeft aria-hidden /> Back
         </Button>
-        <p className="text-sm text-mute" aria-live="polite">
-          {busy ?? "Takes about 2 minutes. You'll see each step as it happens."}
-        </p>
       </div>
       {errorLine}
     </form>
   );
 }
 
-function FoundNote({ found, product }: { found: DiscoverOut; product: string }) {
-  if (found.candidates.length === 0) {
-    if (found.errors.length) return <>The web search didn&apos;t answer just now. Add a link or document below, or try again later.</>;
-    if (!found.search_available)
-      return (
-        <>
-          &ldquo;{product}&rdquo; isn&apos;t on Ritam&apos;s checked list yet, and web search is off on this server. Add a link or
-          document below.
-        </>
-      );
-    if (found.searched) return <>The web search found nothing usable. Add a link or document below.</>;
-    return <>Paste a link, upload a PDF, or paste text below.</>;
-  }
-  return (
-    <>
-      {found.matched_card ? (
-        <>
-          From Ritam&apos;s checked list for <strong className="font-medium text-ink">{found.matched_card}</strong>
-          {found.searched ? ", plus a web search" : ""}.
-        </>
-      ) : (
-        <>From a web search.</>
-      )}{" "}
-      Official sources come first. Untick anything you don&apos;t want checked.
-    </>
-  );
-}
-
-function CandidateRow({ c, checked, onToggle }: { c: Candidate; checked: boolean; onToggle: (on: boolean) => void }) {
-  const id = useId();
-  return (
-    <li className="flex items-start gap-3 p-3 sm:p-4">
-      <input
-        id={id}
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onToggle(e.target.checked)}
-        className="mt-0.5 size-5 shrink-0 accent-ink"
-      />
-      <div className="min-w-0 flex-1">
-        <label htmlFor={id} className="block cursor-pointer font-medium leading-snug break-words">
-          {c.title}
-        </label>
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
-          {c.official ? (
-            <span className="inline-flex items-center gap-1 rounded-full border border-sourced bg-sourced-soft px-2 py-0.5 font-medium text-sourced">
-              <ShieldCheck aria-hidden className="size-3.5" /> Official
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 rounded-full border border-rule px-2 py-0.5 text-mute">
-              <Globe aria-hidden className="size-3.5" /> Third-party
-            </span>
-          )}
-          <span className="text-mute">{SOURCE_KINDS[c.kind] ?? c.kind}</span>
-          <span className="break-all text-mute">{hostOf(c.url)}</span>
-        </div>
-      </div>
-      <a
-        href={c.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex size-10 shrink-0 items-center justify-center rounded-md text-mute hover:bg-paper hover:text-ink"
-        aria-label={`Open ${c.title} in a new tab`}
-      >
-        <ExternalLink aria-hidden className="size-4" />
-      </a>
-    </li>
-  );
+function ManualNote({ found, product }: { found: DiscoverOut; product: string }) {
+  if (found.errors.length) return <>Ritam&apos;s web search didn&apos;t answer just now. Add the bank&apos;s page or a PDF below.</>;
+  if (!product.trim() && !found.matched_card && found.search_available && !found.searched && found.candidates.length === 0 && !found.errors.length)
+    return <>Paste a link, upload a PDF from the bank, or paste text.</>;
+  if (!found.matched_card && !product.trim())
+    return <>Ritam couldn&apos;t tell which card this is about. Go back and type the card&apos;s name, or add a link below.</>;
+  if (!found.search_available)
+    return <>&ldquo;{product}&rdquo; isn&apos;t on Ritam&apos;s checked list yet. Add the bank&apos;s page or a PDF below.</>;
+  return <>Ritam couldn&apos;t find documents for &ldquo;{product}&rdquo;. Check the spelling, or add the bank&apos;s page below.</>;
 }
 
 function SourceRow({
