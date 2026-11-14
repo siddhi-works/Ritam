@@ -67,28 +67,6 @@ flowchart LR
   without AI calls (recorded answers): bills (charges found, dates and totals, no false alarms,
   nothing personal sent to the AI) and the problem router (including every fraud message)
 
-## Run locally
-
-Requirements: Python 3.12+, Node 20+, a Postgres database.
-
-```bash
-cp .env.example .env          # add DATABASE_URL and at least one LLM key
-cd backend
-python -m venv .venv && .venv/Scripts/activate   # macOS/Linux: source .venv/bin/activate
-pip install -e ".[dev]"
-alembic upgrade head
-uvicorn app.main:app --reload
-```
-
-```bash
-cd frontend
-npm install
-npm run dev                   # http://localhost:3000
-```
-
-Tests: `pytest` in `backend/`. Accuracy test sets: `python -m evals.bills` and
-`python -m evals.triage`; add `--live --record` to re-ask the AI for bills without a recording.
-
 ## Limits
 
 Ritam reports possible problems, not verdicts, and it is not financial advice. It only knows what
@@ -96,7 +74,12 @@ the documents it read say. The bill test set is mostly synthetic; real bills wit
 next thing to add. A few RBI references (the 2021 Ombudsman window, credit report complaints,
 recovery agents) are marked in the app as not yet checked against RBI's own text.
 
-## Next
+## Future scope
 
-Full Hindi pages, cost and carbon per report, more real bills in the test set, and personal loans
-(Key Fact Statement and APR checks).
+Automated Policy Change Alerts - Notify users when the official terms, charges, or benefits of saved credit cards change.
+
+Multilingual Accessibility - Full Hindi and regional-language pages; today Hindi works for voice input only.
+
+Cross-Domain Expansion - Extend the same verification framework to personal loans, including Key Fact Statements and Annual Percentage Rates, as well as scholarship information and other document-intensive decision-making domains.
+
+Accuracy - More real bills with fees in the test set, and cost and carbon per report.
