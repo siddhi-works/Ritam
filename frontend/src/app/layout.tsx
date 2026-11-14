@@ -61,7 +61,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <header className="border-b border-rule bg-night">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 px-4 py-3 sm:px-6">
             <Link href="/" className="inline-flex min-h-11 items-center gap-2 text-ink" aria-label="Ritam home">
-              <span className="font-display text-xl font-extrabold tracking-tight">Ritam</span>
+              <span className="font-display text-xl font-extrabold tracking-tight text-neon">Ritam</span>
               <span lang="sa" className="text-sm text-mute">
                 ऋतम्
               </span>

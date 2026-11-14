@@ -44,7 +44,7 @@ export default function Home() {
             >
               Banks talk.
               <br />
-              Ritam checks.
+              <span className="text-neon">Ritam</span> checks.
             </h1>
             <p className="mt-7 max-w-md text-lg leading-relaxed text-ink/80">
               A charge you didn&apos;t expect, a card that won&apos;t close, or terms you aren&apos;t sure of? Ritam reads
