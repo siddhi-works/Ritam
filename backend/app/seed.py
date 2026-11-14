@@ -146,7 +146,7 @@ CASES = [
             TextSource(
                 SAMPLE_CHAT_HDFC,
                 SourceKind.USER_CHAT,
-                "SAMPLE customer-care chat (illustrative)",
+                "Example customer-care chat (illustrative)",
                 date(2026, 10, 20),
             ),
         ],

@@ -10,26 +10,46 @@ import { Button } from "@/components/ui/button";
 import type { Label } from "@/lib/api";
 import { LABELS } from "@/lib/vocab";
 
-// Real numbers only: the checked catalogue, the example reports, and the Questions page.
-const PROOF = [
-  { n: "15", label: "popular cards on Ritam's checked list" },
-  { n: "140", label: "statements in the sample reports, each matched to the bank's exact line" },
-  { n: "16", label: "common questions answered from RBI's own rules" },
+// The three things a person can do here, in their words.
+const ACTIONS = [
+  {
+    href: "/statement",
+    title: "Check my bill",
+    body: "Upload your statement. See every fee, interest charge and GST amount, and which ones the bank shouldn't have charged.",
+  },
+  {
+    href: "#help",
+    title: "Fix a problem",
+    body: "A wrong fee, a card that won't close, a payment you didn't make. Get the steps, the rule and a complaint letter ready to send.",
+  },
+  {
+    href: "#start",
+    title: "Understand a card",
+    body: "Name any Indian credit card. See its real charges and benefits, what changed, and where sources disagree.",
+  },
 ];
 
-const STEPS = [
+// Promises a person can check for themselves on every page.
+const PROMISES = [
   {
-    title: "We find the official papers",
-    body: "The bank's card page, its full list of charges (called the MITC), change notices and comparison sites. You don't have to search for anything.",
+    title: "Every point shows its source",
+    body: "Each fact links to the exact line in the bank's own document, your bill or RBI's rules. If the line can't be found, the point is left out.",
   },
   {
-    title: "Nothing without proof",
-    body: "The AI may only copy exact lines from the bank's papers. If Ritam can't find the line in the document, that point is thrown out.",
+    title: "Rules, not opinions",
+    body: "Ritam applies RBI's published rules for credit cards and names the rule each time, so you can quote it to your bank.",
   },
   {
-    title: "Fixed rules, not guesses",
-    body: "Wrong figures, old information, missing charges and changes made without enough notice are flagged by fixed rules anyone can check.",
+    title: "Honest about what's unclear",
+    body: "When the evidence is mixed, Ritam says so. It points out what to ask the bank; it never claims a bank broke the law.",
   },
+];
+
+const TRUST = [
+  { title: "Free", body: "No sign-up and no fees." },
+  { title: "Private", body: "Bills are read once and never stored. Names and card numbers are hidden first." },
+  { title: "Independent", body: "Ritam doesn't sell cards or take money from banks." },
+  { title: "India only", body: "Built on RBI's rules for cards issued in India." },
 ];
 
 export default function Home() {
@@ -47,9 +67,8 @@ export default function Home() {
               <span className="text-neon">Ritam</span> checks.
             </h1>
             <p className="mt-7 max-w-md text-lg leading-relaxed text-ink/80">
-              A charge you didn&apos;t expect, a card that won&apos;t close, or terms you aren&apos;t sure of? Ritam reads
-              your bill and the bank&apos;s own papers, tells you in simple words what&apos;s right and what to ask the
-              bank, and writes the complaint for you, with proof.
+              Ritam checks your credit card bill and your card&apos;s terms against RBI&apos;s rules. It shows what&apos;s
+              wrong in plain words, with proof from the bank&apos;s own documents, and writes the complaint for you.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Button asChild size="lg" className="h-12 rounded-md px-7 text-base font-semibold">
@@ -75,26 +94,38 @@ export default function Home() {
               Something went wrong with your card?
             </h2>
             <p className="mt-3 max-w-prose text-lg leading-relaxed text-ink/80">
-              A charge you didn&apos;t expect, a card that won&apos;t close, points that vanished. Tell Ritam in your own
-              words, in English or Hindi. It shows what RBI&apos;s rules say and takes you to the right check.
+              A fee you didn&apos;t expect, a card that won&apos;t close, reward points that disappeared. Describe it in your
+              own words, in English or Hindi. Ritam tells you what RBI&apos;s rules say and what to do next.
             </p>
           </div>
           <ProblemRouter />
         </div>
       </section>
 
-      <section aria-label="Ritam in numbers" className="border-b border-rule">
-        <dl className="mx-auto grid max-w-6xl gap-px bg-rule sm:grid-cols-3">
-          {PROOF.map((p) => (
-            <div key={p.n} className="bg-night px-4 py-8 sm:px-6">
-              <dt className="sr-only">{p.label}</dt>
-              <dd>
-                <span className="font-display text-5xl font-extrabold tracking-tight text-ink">{p.n}</span>
-                <span className="mt-2 block max-w-[16rem] text-[0.9375rem] text-mute">{p.label}</span>
-              </dd>
-            </div>
-          ))}
-        </dl>
+      <section aria-labelledby="actions-title" className="border-b border-rule">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+          <h2 id="actions-title" className="font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
+            What you can do with Ritam
+          </h2>
+          <ul className="mt-8 grid gap-px overflow-hidden rounded-lg border border-rule bg-rule md:grid-cols-3">
+            {ACTIONS.map((a) => (
+              <li key={a.title} className="bg-night">
+                <a href={a.href} className="group block h-full p-6 hover:bg-surface">
+                  <h3 className="font-display text-2xl font-semibold text-ink group-hover:text-neon">{a.title}</h3>
+                  <p className="mt-2 text-[0.9375rem] leading-relaxed text-ink/80">{a.body}</p>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4" aria-label="Why people trust Ritam">
+            {TRUST.map((t) => (
+              <li key={t.title}>
+                <p className="font-semibold text-neon">{t.title}</p>
+                <p className="mt-1 text-[0.9375rem] text-ink/80">{t.body}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
 
       <section aria-labelledby="proof-title" className="border-b border-rule">
@@ -106,7 +137,8 @@ export default function Home() {
               Written another.
             </h2>
             <p className="mt-4 max-w-md text-lg text-mute">
-              A real case from a sample report. The highlighted line is the bank&apos;s own words, copied from its document.
+              From a real report: what customer care said, next to what the bank wrote. The highlighted line is copied
+              word for word from the bank&apos;s document.
             </p>
           </div>
           <Specimen />
@@ -119,7 +151,8 @@ export default function Home() {
             Get your card report
           </h2>
           <p className="mb-10 mt-3 max-w-prose text-lg text-mute">
-            Three quick steps. Free, no sign-up, about 2 minutes.
+            Name the card and what you want to know. Ritam reads the bank&apos;s documents for you, usually in 2 to 5
+            minutes.
           </p>
           <AuditForm />
         </section>
@@ -129,26 +162,25 @@ export default function Home() {
             See a sample report
           </h2>
           <p className="mb-8 mt-3 max-w-prose text-lg text-mute">
-            Real reports made from Axis, HDFC and ICICI documents. Open one to see what you&apos;ll get.
+            Real reports built from Axis Bank, HDFC Bank and ICICI Bank documents. Open one to see what you get.
           </p>
           <ExampleAudits />
         </section>
 
         <section className="border-t border-rule py-16" aria-labelledby="how-title">
           <h2 id="how-title" className="font-display text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">
-            Why you can trust the report
+            Why you can rely on it
           </h2>
-          <ol className="mt-10 grid gap-px overflow-hidden rounded-lg border border-rule bg-rule md:grid-cols-3">
-            {STEPS.map((s, i) => (
+          <ul className="mt-10 grid gap-px overflow-hidden rounded-lg border border-rule bg-rule md:grid-cols-3">
+            {PROMISES.map((s) => (
               <li key={s.title} className="bg-night p-6">
-                <p className="font-display text-sm font-semibold text-neon">Step {i + 1}</p>
-                <h3 className="mt-2 font-display text-2xl font-semibold leading-tight text-ink">{s.title}</h3>
+                <h3 className="font-display text-2xl font-semibold leading-tight text-ink">{s.title}</h3>
                 <p className="mt-3 text-[0.9375rem] leading-relaxed text-ink/75">{s.body}</p>
               </li>
             ))}
-          </ol>
+          </ul>
 
-          <h3 className="mt-14 font-display text-2xl font-semibold text-ink">What the labels mean</h3>
+          <h3 className="mt-14 font-display text-2xl font-semibold text-ink">What the labels on each point mean</h3>
           <dl className="mt-5 grid gap-6 md:grid-cols-3">
             {(Object.keys(LABELS) as Label[]).map((k) => (
               <div key={k}>

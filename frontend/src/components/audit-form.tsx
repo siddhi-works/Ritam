@@ -297,7 +297,7 @@ export function AuditForm() {
             I have the bank&apos;s PDF or link
           </button>
         </div>
-        <p className="text-sm text-ink/70">Ritam finds the bank&apos;s official papers for you. You&apos;ll see your report in about 2 minutes.</p>
+        <p className="text-sm text-ink/70">Ritam finds the bank&apos;s official papers for you. Your report is usually ready in 2 to 5 minutes.</p>
         {errorLine}
       </form>
     );

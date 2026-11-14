@@ -33,9 +33,9 @@ const plexSerif = IBM_Plex_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Ritam | Banks talk. Ritam checks.",
+  title: "Ritam: check your credit card bill and terms against RBI's rules",
   description:
-    "Ritam reads a credit card's bank pages, terms, notices and comparison sites, and shows what's missing, conflicting or out of date, with the exact quote behind every finding.",
+    "Free and independent. Check your credit card bill and your card's terms against RBI's rules, see what the bank shouldn't have charged, and get a complaint letter ready to send. Every point shows its source.",
 };
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#0a0b08" };
@@ -71,16 +71,27 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         </header>
         <div id="main">{children}</div>
         <footer className="mt-20 border-t border-rule bg-surface">
-          <div className="mx-auto grid max-w-6xl gap-4 px-4 py-8 text-sm text-mute sm:grid-cols-2 sm:px-6">
-            <p className="max-w-prose">
-              Ritam shows possible issues to check. It is not financial advice and never calls anything a
-              violation. Always confirm with the bank&apos;s latest official documents.
-            </p>
-            <p className="max-w-prose">
-              What happens to your data: pages and PDFs you add are stored to show you the evidence. Names,
-              card numbers, phone numbers and emails in pasted chats are masked before storage or AI
-              processing.
-            </p>
+          <div className="mx-auto grid max-w-6xl gap-6 px-4 py-10 text-sm leading-relaxed text-mute sm:px-6 md:grid-cols-3">
+            <div>
+              <p className="font-semibold text-ink">About Ritam</p>
+              <p className="mt-2 max-w-prose">
+                Ritam is an independent, free service. It doesn&apos;t sell credit cards, show ads or take money from banks.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-ink">Your privacy</p>
+              <p className="mt-2 max-w-prose">
+                Bills you upload are read once and never stored. Names, addresses, card numbers, phone numbers and emails
+                are hidden before any processing. Documents for card reports are kept so you can see the source.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-ink">Please note</p>
+              <p className="mt-2 max-w-prose">
+                Ritam points out what to check and what to ask your bank. It is not financial or legal advice. Your
+                bank&apos;s latest official documents and RBI&apos;s rules are the final word.
+              </p>
+            </div>
           </div>
         </footer>
       </body>

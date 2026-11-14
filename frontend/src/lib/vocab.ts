@@ -4,21 +4,21 @@ import type { ChecklistOut, Label } from "./api";
 export const LABELS: Record<Label, { name: string; meaning: string; text: string; bg: string; border: string }> = {
   sourced: {
     name: "Sourced",
-    meaning: "Backed by an exact quote that Ritam matched in the document.",
+    meaning: "Confirmed: the exact line was found in the bank's document, your bill or RBI's rules.",
     text: "text-sourced",
     bg: "bg-sourced-soft",
     border: "border-sourced",
   },
   ai_suggestion: {
     name: "AI suggestion",
-    meaning: "Proposed by the AI, such as a question to check. Not a fact.",
+    meaning: "A suggestion, such as a question worth asking the bank. Not a confirmed fact.",
     text: "text-ai",
     bg: "bg-ai-soft",
     border: "border-ai",
   },
   uncertain: {
     name: "Uncertain",
-    meaning: "The evidence is mixed or unclear. Check before relying on it.",
+    meaning: "The documents disagree or aren't clear. Check with the bank before relying on it.",
     text: "text-uncertain",
     bg: "bg-uncertain-soft",
     border: "border-uncertain",

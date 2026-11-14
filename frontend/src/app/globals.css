@@ -150,9 +150,6 @@
 .hero-stage {
   perspective: 1400px;
 }
-.hero-disc {
-  transform: translateY(-50%);
-}
 .hero-card {
   transform: rotateX(52deg) rotateZ(-34deg);
   transform-style: preserve-3d;
@@ -161,37 +158,7 @@
     inset 0 1px 0 rgb(238 242 227 / 0.12);
 }
 @media (prefers-reduced-motion: no-preference) {
-  /* Pointer-driven motion only (WCAG 2.2.2: nothing moves on its own for long). The stage leans
-     towards the cursor; the front card travels further than the back one, for depth. */
-  .hero-tilt {
-    transform-style: preserve-3d;
-    transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
-    transition: transform 400ms cubic-bezier(0.2, 0.7, 0.2, 1);
-  }
-  .hero-card {
-    transition:
-      transform 400ms cubic-bezier(0.2, 0.7, 0.2, 1),
-      box-shadow 400ms ease;
-  }
-  .hero-card-front {
-    transform: translate(var(--shift-x, 0), var(--shift-y, 0)) rotateX(52deg) rotateZ(-34deg);
-  }
-  .hero-card-back {
-    transform: translate(calc(var(--shift-x, 0) * -0.5), calc(var(--shift-y, 0) * -0.5)) rotateX(52deg)
-      rotateZ(-34deg);
-  }
-  .hero-card:hover {
-    transform: translateY(-22px) rotateX(46deg) rotateZ(-30deg) scale(1.04);
-    box-shadow:
-      0 60px 80px -20px rgb(0 0 0 / 0.85),
-      0 0 0 1px rgb(204 255 61 / 0.35),
-      inset 0 1px 0 rgb(238 242 227 / 0.16);
-  }
-  .hero-disc {
-    transition: transform 600ms cubic-bezier(0.2, 0.7, 0.2, 1);
-    transform: translate(calc(var(--shift-x, 0) * -0.6), calc(-50% + var(--shift-y, 0) * -0.6));
-  }
-  /* One entrance on load, under 5 seconds. */
+  /* One entrance on load, under 5 seconds, then still (WCAG 2.2.2: no endless motion). */
   .hero-float {
     animation: hero-float 2.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
   }
