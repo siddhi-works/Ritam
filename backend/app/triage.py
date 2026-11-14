@@ -249,6 +249,26 @@ PROBLEMS: tuple[Problem, ...] = (
         ),
     ),
     _P(
+        "cashback_form",
+        "My cashback came as vouchers or points, not money",
+        "card_report",
+        ("card",),
+        (
+            "Tell Ritam the card: it reads the bank's own terms and shows how rewards are really paid, what a "
+            "point is worth, and any fee, minimum or expiry.",
+            "If the terms or the ad you signed up from promised money credited to your bill, ask the bank in "
+            "writing why it paid otherwise.",
+        ),
+        None,
+        (
+            r"cash ?back\W+(?:\w+\W+){0,4}(?:as|in|into) (?:\w+ ){0,2}(?:vouchers?|gift ?cards?|points?|coins?|neucoins?|pay balance|wallet)",
+            r"(?:vouchers?|gift ?cards?|points?) instead of (?:cash ?back|money|cash)",
+            r"cash ?back (?:is|are|was) (?:only )?(?:vouchers?|gift ?cards?|points?)",
+            r"cash ?back (?:ki )?jagah (?:vouchers?|gift ?cards?|points?)",
+            r"cash ?back (?:me|mein) (?:vouchers?|gift ?cards?|points?)",
+        ),
+    ),
+    _P(
         "benefits_cut",
         "The bank cut my card's benefits",
         "terms_history",
@@ -409,6 +429,7 @@ PRIORITY = [
     "closure",
     "overlimit",
     "limit_cut",
+    "cashback_form",
     "points",
     "late_fee",
     "emi",

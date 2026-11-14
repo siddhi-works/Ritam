@@ -110,7 +110,7 @@ async def test_discover_searches_for_unknown_card_and_tags_results() -> None:
         )
     finally:
         await search.aclose()
-    assert route.call_count == 3
+    assert route.call_count == 4  # fees, terms, changes, how rewards are paid
     sent = route.calls[0].request
     assert sent.headers["Authorization"] == "Bearer tvly-test"
     urls = [c["url"] for c in out["candidates"]]
@@ -130,7 +130,7 @@ async def test_discover_survives_search_errors() -> None:
     finally:
         await search.aclose()
     assert out["candidates"] == [] and out["searched"] is False
-    assert out["errors"] == ["HTTPStatusError"] * 3
+    assert out["errors"] == ["HTTPStatusError"] * 4
 
 
 async def test_discover_stops_when_search_budget_is_used() -> None:

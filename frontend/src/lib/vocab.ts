@@ -35,6 +35,7 @@ export const MEANS: Record<string, string> = {
   undated: "No date found, so you can't tell if this is current.",
   chat_mismatch: "What customer care said may not match the written terms.",
   single_origin: "Several sites agree, but they seem to copy one source.",
+  gap: "Worth knowing before you rely on the card's name or ads.",
 };
 
 export const TYPE_NAMES: Record<string, string> = {
@@ -46,6 +47,7 @@ export const TYPE_NAMES: Record<string, string> = {
   undated: "No date on it",
   chat_mismatch: "What you were told",
   single_origin: "Copied source",
+  gap: "Worth knowing",
 };
 
 export const SOURCE_KINDS: Record<string, string> = {

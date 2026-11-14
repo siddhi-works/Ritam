@@ -8,13 +8,19 @@ label: Credit card
 subject: an Indian credit card
 issuer: the bank
 terms_doc: MITC
-prompt_version: cc-extract-v2
+prompt_version: cc-extract-v3
+previous_prompt_versions: [cc-extract-v2]
 notice_rules: true
 extract_notes:
   - >-
     Keep similar charges apart: the dynamic currency conversion (DCC) markup is `dcc_markup`, not
     `forex_markup` (the foreign currency transaction fee). When a value changes "to X from Y", extract
     X as the claim; mention Y in `conditions` (e.g. "previously 1.5%").
+  - >-
+    For `reward_form`, say exactly how the reward reaches the cardholder, in the document's words:
+    money credited to the card account or bill, reward points, vouchers or gift cards, a wallet
+    balance (such as Amazon Pay), or air miles. "Cashback" that is paid as vouchers, points or a
+    wallet balance is that form, not money credited to the bill.
 attributes:
   - key: joining_fee
     label: Joining fee
@@ -114,6 +120,41 @@ attributes:
     importance: 3
     mitc_required: false
     keywords: [excluded, not eligible, exclusions, rent, wallet load, fuel, utility, government]
+  - key: reward_form
+    label: How rewards are paid (money off the bill, points, vouchers)
+    category: rewards
+    value_type: text
+    importance: 4
+    mitc_required: false
+    keywords: [statement credit, credited to your card account, credited to the card account, cashback will be credited, reward points, voucher, gift card, amazon pay balance, air miles, neucoins]
+  - key: point_value
+    label: Value of one reward point in rupees
+    category: rewards
+    value_type: money
+    importance: 4
+    mitc_required: false
+    keywords: [1 reward point =, 1 rp =, value of each point, redemption value, per point, conversion rate]
+  - key: redemption_fee
+    label: Fee to redeem rewards
+    category: rewards
+    value_type: money
+    importance: 3
+    mitc_required: false
+    keywords: [redemption fee, redemption charge, reward redemption fee, processing fee on redemption]
+  - key: min_redemption
+    label: Minimum points or cashback to redeem
+    category: rewards
+    value_type: count
+    importance: 2
+    mitc_required: false
+    keywords: [minimum redemption, minimum of, points required to redeem, minimum cashback]
+  - key: reward_expiry
+    label: When rewards expire
+    category: rewards
+    value_type: text
+    importance: 3
+    mitc_required: false
+    keywords: [expire, expiry, valid for, lapse, forfeit, will be forfeited]
   - key: domestic_lounge_visits
     label: Domestic lounge visits
     category: travel

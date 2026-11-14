@@ -26,8 +26,19 @@ from app.models import (
     Source,
     SourceKind,
 )
-from app.packs import load_pack
+from app.packs import Pack, load_pack
 from app.refresh import url_source
+
+
+def claim_scope(audit: Audit, pack: Pack) -> str:
+    """The version a report's facts were read under. Reports from before versions were recorded
+    used the pack's previous version."""
+    recorded = (audit.stats or {}).get("claim_scope")
+    if recorded:
+        return str(recorded)
+    version = (pack.previous_prompt_versions or [pack.prompt_version])[-1]
+    return scope_key(audit.product_name, version)
+
 
 router = APIRouter(prefix="/api/audits", tags=["audits"])
 TERMINAL = {AuditStatus.COMPLETE, AuditStatus.PARTIAL, AuditStatus.FAILED}
@@ -255,7 +266,7 @@ async def get_audit(session: Session, audit_id: uuid.UUID, response: Response) -
         select(Claim).where(
             Claim.source_id.in_(source_ids),
             Claim.verified.is_(True),
-            Claim.prompt_version == scope_key(audit.product_name, pack.prompt_version),
+            Claim.prompt_version == claim_scope(audit, pack),
         )
     ))  # fmt: skip
     findings = list(await session.scalars(

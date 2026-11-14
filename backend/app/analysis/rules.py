@@ -12,6 +12,13 @@ from rapidfuzz import fuzz
 from app.analysis.absence import find_mentions
 from app.analysis.compare import comparable, same_value
 from app.analysis.facts import TERMS_KINDS, ClaimFact, Finding, SourceFact, SubQuestion
+from app.analysis.rewards import (
+    CASHBACK,
+    FORM_NAMES,
+    points_rate,
+    reward_forms,
+    rupees_per_point,
+)
 from app.packs import Pack
 
 RBI_NOTICE_DAYS = 30  # RBI: one month's notice before charges change
@@ -105,6 +112,7 @@ class Analysis:
         findings += self.terms_missing()
         findings += self.unanswered()
         findings += self.chat_mismatch()
+        findings += self.rewards()
         return findings
 
     def undated(self) -> list[Finding]:
@@ -635,3 +643,73 @@ class Analysis:
                 )
             )
         return out
+
+    def rewards(self) -> list[Finding]:
+        """A card sold as "cashback" whose terms pay in points, vouchers or a wallet balance, and
+        what points are really worth when the terms give both the earn rate and a point's value."""
+        issuer = [c for c in self.comparable_claims if self.sources[c.source_id].is_issuer]
+        how_paid = [c for c in issuer if c.attribute == "reward_form"]
+        rates = [c for c in issuer if c.attribute == "reward_rate"]
+        values = [
+            (c, v) for c in issuer
+            if c.attribute == "point_value" and (v := rupees_per_point(c.value_raw)) is not None
+        ]  # fmt: skip
+        forms = set().union(*(reward_forms(f"{c.value_raw} {c.quote}") for c in how_paid))
+        rate = next(((c, r) for c in rates if (r := points_rate(f"{c.value_raw} {c.quote}"))), None)
+        worth = None
+        if rate and values:
+            (rate_claim, r), (value_claim, value) = rate, values[0]
+            worth = (
+                f"{r.points:g} points per Rs {r.per_rupees:,.0f}, at Rs {value:g} a point, is about "
+                f"{r.percent(value):.2f}% of what you spend.",
+                [rate_claim, value_claim],
+            )
+
+        said_cashback = bool(CASHBACK.search(self.product or "")) or any(
+            CASHBACK.search(f"{c.value_raw} {c.quote}") for c in rates + how_paid
+        )
+        other = sorted(forms - {"money"})
+        if said_cashback and other and "money" not in forms:
+            paid_as = " or ".join(FORM_NAMES[f] for f in other)
+            used = how_paid + (worth[1] if worth else [])
+            reasons = [
+                f"The card's own terms say rewards come as {paid_as}, not money off your bill.",
+                "Check what they can be used for, any fee to redeem, a minimum to redeem and when they expire.",
+            ]
+            if worth:
+                reasons.append(worth[0])
+            return [
+                Finding(
+                    type="gap",
+                    rule_id="gap.cashback_form",
+                    label="sourced",
+                    severity=4,
+                    confidence=0.8,
+                    title=f"Called cashback, but paid as {paid_as}",
+                    detail={"evidence": [self._evidence(c) for c in used], "reasons": reasons},
+                    claim_ids=[c.id for c in used],
+                    source_ids=sorted({c.source_id for c in used}),
+                    attribute="reward_form",
+                    key="rewards:form",
+                )
+            ]
+        if worth:
+            return [
+                Finding(
+                    type="gap",
+                    rule_id="gap.points_value",
+                    label="sourced",
+                    severity=2,
+                    confidence=0.8,
+                    title="What the reward points are really worth",
+                    detail={
+                        "evidence": [self._evidence(c) for c in worth[1]],
+                        "reasons": [worth[0]],
+                    },
+                    claim_ids=[c.id for c in worth[1]],
+                    source_ids=sorted({c.source_id for c in worth[1]}),
+                    attribute="point_value",
+                    key="rewards:value",
+                )
+            ]
+        return []

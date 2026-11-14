@@ -199,7 +199,12 @@ async def load_terms(session: AsyncSession, card_name: str) -> dict[str, list[Te
         .where(
             AuditSource.audit_id.in_(audits),
             Claim.verified.is_(True),
-            Claim.prompt_version == scope_key(card_name, pack.prompt_version),
+            Claim.prompt_version.in_(
+                [
+                    scope_key(card_name, v)
+                    for v in (pack.prompt_version, *pack.previous_prompt_versions)
+                ]
+            ),
             Source.kind.in_(OFFICIAL_KINDS),
         )
         .distinct()

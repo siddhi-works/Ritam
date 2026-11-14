@@ -31,6 +31,8 @@ class Pack(BaseModel):
     issuer: str = "the bank"  # who publishes the official terms
     terms_doc: str = "MITC"  # the issuer's authoritative terms document
     prompt_version: str = "cc-extract-v2"  # part of the extraction cache key; bump on change
+    # Earlier versions whose facts are still read (term history, older reports).
+    previous_prompt_versions: list[str] = Field(default_factory=list)
     notice_rules: bool = True  # RBI's one-month notice for changes in card charges applies
     extract_notes: list[str] = Field(default_factory=list)  # pack-specific extraction rules
     attributes: list[AttributeSpec]

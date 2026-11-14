@@ -358,6 +358,7 @@ async def run_audit(
             "findings": len(findings),
             "copy_edges": [e.__dict__ for e in edges],
             "trace": trace.steps,
+            "claim_scope": scope_key(audit.product_name, pack.prompt_version),
         }
         audit.status = (
             AuditStatus.PARTIAL if failed or len(usable) < len(sources) else AuditStatus.COMPLETE

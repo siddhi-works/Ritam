@@ -61,6 +61,7 @@ export function CardFinder() {
   const [lounge, setLounge] = useState("");
   const [maxFee, setMaxFee] = useState("0");
   const [paysInFull, setPaysInFull] = useState(true);
+  const [rewardsAs, setRewardsAs] = useState<"bill" | "any">("any");
   const [apps, setApps] = useState("");
   const [card, setCard] = useState("");
   const [out, setOut] = useState<Checklist | null>(null);
@@ -81,6 +82,7 @@ export function CardFinder() {
         lounge_visits_per_year: Math.round(num(lounge)),
         max_fee: num(maxFee),
         pays_in_full: paysInFull,
+        rewards_as: rewardsAs,
         apps: apps
           .split(",")
           .map((a) => a.trim())
@@ -153,6 +155,33 @@ export function CardFinder() {
             className={`${FIELD} mt-1`}
           />
         </div>
+
+        <fieldset>
+          <legend className="text-[0.9375rem] font-semibold text-ink">How do you want your rewards?</legend>
+          <p className="mt-1 text-sm text-mute">
+            Some cards called &ldquo;cashback&rdquo; pay in vouchers, gift cards or points instead of money.
+          </p>
+          <div className="mt-2 space-y-1">
+            {(
+              [
+                ["bill", "Money off my bill only"],
+                ["any", "Points or vouchers are fine too"],
+              ] as const
+            ).map(([value, label]) => (
+              <label key={value} className="flex min-h-11 cursor-pointer items-center gap-3 text-[0.9375rem] text-ink">
+                <input
+                  type="radio"
+                  name="rewards-as"
+                  value={value}
+                  checked={rewardsAs === value}
+                  onChange={() => setRewardsAs(value)}
+                  className="size-5 accent-[var(--color-neon)]"
+                />
+                {label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
 
         <label className="flex min-h-11 cursor-pointer items-start gap-3 text-[0.9375rem] text-ink">
           <input

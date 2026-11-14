@@ -44,6 +44,8 @@ class Answers(BaseModel):
     max_fee: Decimal = Field(default=Decimal(0), ge=0, le=100_000)
     pays_in_full: bool = True
     apps: list[str] = Field(default_factory=list, max_length=5)
+    # "bill": rewards must come off the bill; "any": points or vouchers are fine too.
+    rewards_as: Literal["bill", "any"] = "any"
 
 
 @dataclass
@@ -174,11 +176,25 @@ def build(a: Answers, benchmarks: dict[str, str] | None = None) -> Checklist:
             f"{CATEGORY_NAMES[cat]}, which is {percent(share * 100)} of what you spend.",
         ))  # fmt: skip
 
+    if a.rewards_as == "bill":
+        c.must_have.append(Point(
+            "Rewards credited straight to your bill (a statement credit).",
+            "Some cards called cashback pay in vouchers, gift cards, points or a wallet balance, "
+            "which you can only spend where the bank allows.",
+        ))  # fmt: skip
+        c.skip_if.append(Point(
+            "Rewards come only as vouchers, gift cards, points or a wallet balance, even if the "
+            "card is called cashback."
+        ))  # fmt: skip
+
     c.ask_the_bank += [
         "Exactly what spend counts towards the fee waiver, and over which 12 months?",
         "Is there a monthly cap on rewards, and which spends earn nothing (rent, wallet loads, fuel, "
         "bills, insurance)?",
-        "What is one reward point worth in rupees, and is there a fee to redeem?",
+        "Is cashback credited to my bill, or paid as points, vouchers, gift cards or a wallet "
+        "balance?",
+        "What is one reward point worth in rupees, is there a fee or minimum to redeem, and when "
+        "do rewards expire?",
         "Can the bank change the rewards later, and how will it tell me?",
     ]
     return c

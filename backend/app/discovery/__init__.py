@@ -76,7 +76,7 @@ class TavilySearch:
 
 
 def queries_for(product: str, question: str, pack: str) -> list[tuple[str, str]]:
-    """(query, reason) pairs, at most three per discovery."""
+    """(query, reason) pairs, at most four per discovery."""
     return [
         (f"{product} most important terms and conditions MITC fees charges", "bank terms and fees"),
         (
@@ -84,6 +84,10 @@ def queries_for(product: str, question: str, pack: str) -> list[tuple[str, str]]
             "official card page and comparison sites",
         ),
         (f"{product} credit card changes devaluation notice 2026", "recent changes and notices"),
+        (
+            f"{product} cashback reward points redemption value voucher statement credit",
+            "how rewards are actually paid",
+        ),
     ]
 
 

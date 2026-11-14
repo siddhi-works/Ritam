@@ -71,3 +71,12 @@ def test_a_brand_is_weighed_against_its_own_category():
     amazon = next(p for p in c.nice_to_have if "Amazon" in p.text)
     assert "food delivery and dining" in swiggy.maths and "20%" in swiggy.maths  # 5,000 of 25,000
     assert "online shopping" in amazon.maths and "60%" in amazon.maths
+
+
+def test_wanting_money_off_the_bill_rules_out_voucher_cashback():
+    c = build(Answers(spend={"online": Decimal(10000)}, rewards_as="bill"), {})
+    assert any("statement credit" in p.text for p in c.must_have)
+    assert any("vouchers" in p.text for p in c.skip_if)
+    loose = build(Answers(spend={"online": Decimal(10000)}), {})
+    assert not any("vouchers" in p.text for p in loose.skip_if)
+    assert any("gift cards" in q for q in loose.ask_the_bank)
