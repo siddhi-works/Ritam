@@ -1,0 +1,14 @@
+{
+ "statement_date": "05/10/2026",
+ "payment_due_date": "25/10/2026",
+ "payment_received_date": null,
+ "total_due": "6,349.00",
+ "minimum_due": "320.00",
+ "credit_limit": "1,50,000",
+ "payments_total": "8,120.00",
+ "reward_points_opening": null,
+ "reward_points_closing": null,
+ "reward_points_expired": null,
+ "charges": [],
+ "credits": []
+}

@@ -140,6 +140,8 @@ export interface Candidate {
 
 export interface DiscoverOut {
   candidates: Candidate[];
+  not_indian?: boolean;
+  message?: string | null;
   matched_card: string | null;
   searched: boolean;
   search_available: boolean;
@@ -196,4 +198,147 @@ export function problemMessage(err: unknown): string {
     return typeof d === "string" ? d : err.problem.title;
   }
   return "Ritam's server didn't answer. It may be waking up; try again in a minute.";
+}
+
+export interface StatementCharge {
+  description: string;
+  amount: number;
+  kind: string;
+}
+
+export interface StatementFinding {
+  title: string;
+  detail: string;
+  label: "sourced" | "uncertain";
+  severity: number;
+  charge: string | null;
+  rule: string;
+  ask: boolean;
+  ref: string | null;
+  amount: number | null;
+}
+
+export interface StatementOut {
+  charges: StatementCharge[];
+  dropped: number;
+  findings: StatementFinding[];
+  dates: { statement_date: string | null; payment_due_date: string | null; payment_received_date: string | null };
+  total_due: string | null;
+  minimum_due: string | null;
+  card: string | null;
+  report_id: string | null;
+  masked: number;
+  truncated: boolean;
+  previous?: { statement_date: string | null; payment_due_date: string | null; total_due: string | null };
+}
+
+export async function checkStatement(file: File, card: string, lifetimeFree: boolean): Promise<StatementOut> {
+  const form = new FormData();
+  form.append("file", file);
+  if (card.trim()) form.append("card", card.trim());
+  form.append("lifetime_free", String(lifetimeFree));
+  return handle<StatementOut>(await fetch(`${API_URL}/api/statements`, { method: "POST", body: form }));
+}
+
+async function postForm<T>(path: string, form: FormData): Promise<T> {
+  return handle<T>(await fetch(`${API_URL}${path}`, { method: "POST", body: form }));
+}
+
+export async function compareStatements(
+  previous: File,
+  current: File,
+  card: string,
+  lifetimeFree: boolean,
+): Promise<StatementOut> {
+  const form = new FormData();
+  form.append("previous", previous);
+  form.append("current", current);
+  if (card.trim()) form.append("card", card.trim());
+  form.append("lifetime_free", String(lifetimeFree));
+  return postForm<StatementOut>("/api/statements/compare", form);
+}
+
+export type Tool =
+  | "fraud_help"
+  | "statement_check"
+  | "compare_bills"
+  | "closure_claim"
+  | "terms_history"
+  | "complaint_dates"
+  | "complaint_letter"
+  | "card_report"
+  | "guide";
+
+export interface TriageOut {
+  problem: string | null;
+  title: string | null;
+  tool: Tool;
+  needs: string[];
+  steps: string[];
+  ref: string | null;
+  letter_rule: string | null;
+  matched_by: "rules" | "ai" | "none";
+  also: string[];
+  prefill: { card: string | null; card_id: string | null; dates: string[] };
+  not_indian: boolean;
+}
+
+export interface TimelineStep {
+  date: string;
+  what: string;
+  why: string;
+}
+
+export interface LetterFinding {
+  rule: string;
+  charge?: string | null;
+  amount?: number | null;
+  ref?: string | null;
+}
+
+export interface LetterOut {
+  letter: string;
+  bank: string | null;
+  where_to_send: { text: string; quote: string; url: string | null; source: string | null } | null;
+  timeline: TimelineStep[];
+}
+
+export interface ClosureOut {
+  requested_on: string;
+  due_by: string;
+  closed_on: string | null;
+  days_late: number;
+  penalty: number;
+  letter: string | null;
+  note: string;
+}
+
+export interface TermValue {
+  value: string;
+  dated: string | null;
+  dated_by: "effective" | "document" | "read";
+  quote: string;
+  source_url: string | null;
+  source_title: string | null;
+}
+
+export interface TermSnapshot {
+  dated: string;
+  dated_by: string;
+  values: TermValue[];
+}
+
+export interface TermsOut {
+  card: string;
+  since: string;
+  today: string;
+  terms: { attribute: string; label: string; then: TermSnapshot | null; now: TermSnapshot | null; changed: boolean | "maybe" }[];
+  changes: { attribute: string; certain: boolean; before: TermSnapshot; after: TermSnapshot; from: string }[];
+  coverage: { values: number; earliest: string | null; latest: string | null; note: string };
+}
+
+export function remindersUrl(complainedOn: string, title: string, repliedOn?: string): string {
+  const q = new URLSearchParams({ complained_on: complainedOn, title });
+  if (repliedOn) q.set("replied_on", repliedOn);
+  return `${API_URL}/api/cases/reminders.ics?${q}`;
 }

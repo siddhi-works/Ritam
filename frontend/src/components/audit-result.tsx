@@ -3,6 +3,7 @@
 import { ChevronDown, ExternalLink, Mail, Phone, SearchCheck, TriangleAlert } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { ComplaintHelp, SavePdfButton } from "@/components/complaint-help";
 import { EvidenceSheet, type EvidenceTarget } from "@/components/evidence-sheet";
 import { FindingCard } from "@/components/finding-card";
 import { LabelTag } from "@/components/label-tag";
@@ -43,6 +44,9 @@ export function AuditResult({ audit }: { audit: AuditOut }) {
           {audit.sources.length} sources checked, {audit.stats.claims_verified ?? 0} statements verified against their
           documents{audit.finished_at ? `, ${formatDate(audit.finished_at)}` : ""}.
         </p>
+        <div className="mt-4">
+          <SavePdfButton />
+        </div>
         {audit.status === "partial" && (
           <p role="status" className="mt-4 flex items-start gap-2 rounded-md border border-uncertain bg-uncertain-soft px-4 py-3 text-[0.9375rem] text-ink">
             <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0 text-uncertain" />
@@ -52,7 +56,7 @@ export function AuditResult({ audit }: { audit: AuditOut }) {
         )}
         {audit.status === "failed" && (
           <p role="alert" className="mt-4 rounded-md border border-destructive px-4 py-3 text-[0.9375rem] text-destructive">
-            This audit didn&apos;t finish. {audit.stats.error ?? "Please run it again."}
+            {audit.stats.not_indian ? audit.stats.error : <>This audit didn&apos;t finish. {audit.stats.error ?? "Please run it again."}</>}
           </p>
         )}
       </header>
@@ -124,6 +128,8 @@ export function AuditResult({ audit }: { audit: AuditOut }) {
           <Checklist items={audit.checklist} />
         </div>
       </div>
+
+      <ComplaintHelp />
 
       <section aria-label="Details" className="space-y-3">
         <Details title="Everything Ritam read, by card feature" defaultOpen={false}>
@@ -259,7 +265,7 @@ function CoverageTable({ audit, onOpen }: { audit: AuditOut; onOpen: (t: Evidenc
   const sources = audit.sources.filter((s) => audit.matrix.some((r) => r.cells[s.id]));
   if (!audit.matrix.length) return <p className="text-mute">No card features were extracted.</p>;
   return (
-    <div className="-mx-5 overflow-x-auto px-5">
+    <div tabIndex={0} role="region" aria-label="Coverage table" className="-mx-5 overflow-x-auto px-5">
       <table className="w-full min-w-[40rem] border-collapse text-sm">
         <caption className="sr-only">Values found for each card feature in each source</caption>
         <thead>

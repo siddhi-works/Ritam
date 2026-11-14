@@ -3,13 +3,7 @@
 @import "shadcn/tailwind.css";
 
 /* Design tokens. Neon means one thing: proven by the document. */
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-plex-sans), var(--font-plex-deva), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-plex-serif), ui-serif, Georgia, serif;
-  --font-display: var(--font-display), var(--font-plex-sans), ui-sans-serif, sans-serif;
-
+@theme {
   --color-ink: #eef2e3;
   --color-paper: #0a0b08;
   --color-night: #0a0b08;
@@ -24,6 +18,14 @@
   --color-ai-soft: rgb(182 166 255 / 0.12);
   --color-uncertain: #ffb547;
   --color-uncertain-soft: rgb(255 181 71 / 0.12);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-plex-sans), var(--font-plex-deva), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-plex-serif), ui-serif, Georgia, serif;
+  --font-display: var(--font-display), var(--font-plex-sans), ui-sans-serif, sans-serif;
 
   --color-ring: var(--ring);
   --color-input: var(--input);
@@ -172,5 +174,61 @@
     100% {
       transform: translateY(0);
     }
+  }
+}
+
+/* Reading options (header toggles). Tokens are plain variables so these overrides reach every utility. */
+html[data-large="1"] {
+  font-size: 118.75%;
+}
+html[data-contrast="1"] {
+  --color-ink: #ffffff;
+  --color-mute: #ececec;
+  --color-rule: #a0a0a0;
+  --color-surface: #000000;
+  --color-night: #000000;
+  --color-paper: #000000;
+  --color-ai: #d4caff;
+  --color-uncertain: #ffc56b;
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #000000;
+  --border: #a0a0a0;
+  --input: #ffffff;
+  --muted-foreground: #ececec;
+}
+html[data-contrast="1"] body {
+  background: #000000;
+}
+
+/* "Save as PDF or print": dark ink on white paper, no navigation or buttons. */
+@media print {
+  :root,
+  html[data-contrast="1"] {
+    --color-ink: #000000;
+    --color-mute: #444444;
+    --color-rule: #bbbbbb;
+    --color-surface: #ffffff;
+    --color-night: #ffffff;
+    --color-paper: #ffffff;
+    --color-neon: #3b5d00;
+    --color-sourced: #3b5d00;
+    --color-ai: #4b3aa8;
+    --color-uncertain: #8a4b00;
+    --background: #ffffff;
+    --foreground: #000000;
+    --border: #bbbbbb;
+  }
+  body {
+    background: #ffffff;
+  }
+  header nav,
+  footer,
+  [href="#main"] {
+    display: none !important;
+  }
+  section,
+  li {
+    break-inside: avoid;
   }
 }

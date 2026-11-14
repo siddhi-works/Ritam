@@ -6,6 +6,7 @@ import type { EvidenceTarget } from "@/components/evidence-sheet";
 import { SourceList } from "@/components/source-list";
 import type { AuditOut, Label } from "@/lib/api";
 import { formatDate } from "@/lib/vocab";
+import { ListenButton } from "@/components/assist";
 
 const STATUS: Record<string, { text: string; cls: string }> = {
   official: { text: "Confirmed by the bank", cls: "text-sourced" },
@@ -48,8 +49,9 @@ export function ReportCard({
       const [tb, db] = rank(b.sid, b.cell.valid_from);
       return ta - tb || db.localeCompare(da);
     });
-    const more = cells[0] ? cells.filter((x) => x.sid === cells[0].sid).length - 1 : 0;
-    return { row, best: cells[0], more, status: STATUS[c.by_attribute[row.attribute]] ?? STATUS.missing };
+    // Several values from the same source = slabs or cases ("up to ₹500: Nil", "₹501–5,000: ₹500").
+    const variants = cells[0] ? cells.filter((x) => x.sid === cells[0].sid) : [];
+    return { row, best: cells[0], variants, status: STATUS[c.by_attribute[row.attribute]] ?? STATUS.missing };
   });
 
   // What the bank's own change notice says, shown first when one was read.
@@ -67,10 +69,13 @@ export function ReportCard({
 
   return (
     <section aria-labelledby="answer-title" className="space-y-6">
-      <div className="rounded-lg border border-ink bg-surface p-5 sm:p-7">
-        <h2 id="answer-title" className="text-sm font-medium text-ink/70">
-          The short answer
-        </h2>
+      <div id="short-answer" className="rounded-lg border border-ink bg-surface p-5 sm:p-7">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 id="answer-title" className="text-sm font-medium text-ink/70">
+            The short answer
+          </h2>
+          <ListenButton targetId="short-answer" label="Listen to this" />
+        </div>
         <p className="mt-2 text-[1.375rem] font-semibold leading-snug text-ink sm:text-[1.625rem]">{verdict(toCheck, unclear)}</p>
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
           {tiles.map((t) => (
@@ -132,11 +137,29 @@ export function ReportCard({
             Official figures first. Tap a figure to see the exact line in the document.
           </p>
           <dl className="mt-4 grid gap-x-8 sm:grid-cols-2">
-            {facts.map(({ row, best, more, status }) => (
+            {facts.map(({ row, best, variants, status }) => (
               <div key={row.attribute} className="border-t border-rule py-3">
                 <dt className="text-sm text-ink/70">{row.label}</dt>
                 <dd className="mt-0.5">
-                  {best ? (
+                  {variants.length > 1 ? (
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[1.0625rem] font-medium text-ink">Depends on the case</span>
+                      {variants.slice(0, 3).map((v) => (
+                        <button
+                          key={v.cell.claim_id}
+                          type="button"
+                          onClick={() => onOpen({ sourceId: v.sid, claimId: v.cell.claim_id })}
+                          className="text-left text-sm text-ink/85 underline decoration-rule underline-offset-4 hover:decoration-ink"
+                        >
+                          {v.cell.conditions ? `${v.cell.conditions}: ` : ""}
+                          <b>{v.cell.value}</b>
+                        </button>
+                      ))}
+                      {variants.length > 3 && (
+                        <span className="text-sm text-ink/70">+{variants.length - 3} more in the document</span>
+                      )}
+                    </div>
+                  ) : best ? (
                     <button
                       type="button"
                       onClick={() => onOpen({ sourceId: best.sid, claimId: best.cell.claim_id })}
@@ -147,11 +170,8 @@ export function ReportCard({
                   ) : (
                     <span className="text-[1.0625rem] text-mute">Not found in the documents read</span>
                   )}
-                  {best?.cell.conditions && <span className="block text-sm text-ink/70">{best.cell.conditions}</span>}
-                  {more > 0 && (
-                    <span className="block text-sm text-ink/70">
-                      +{more} more {more === 1 ? "value" : "values"} for other cases. Tap to see all.
-                    </span>
+                  {variants.length <= 1 && best?.cell.conditions && (
+                    <span className="block text-sm text-ink/70">{best.cell.conditions}</span>
                   )}
                   <span className={`mt-0.5 block text-xs font-medium ${status.cls}`}>{status.text}</span>
                 </dd>

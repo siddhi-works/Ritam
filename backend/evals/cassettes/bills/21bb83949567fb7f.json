@@ -1,0 +1,111 @@
+{
+ "statement_date": "05/10/2026",
+ "payment_due_date": "25/10/2026",
+ "payment_received_date": "27/09/2026",
+ "total_due": "27,013.65",
+ "minimum_due": "1,350.00",
+ "credit_limit": "1,50,000",
+ "payments_total": "15,000.00",
+ "reward_points_opening": null,
+ "reward_points_closing": null,
+ "reward_points_expired": null,
+ "charges": [
+  {
+   "description": "MARKUP FEE ON FOREIGN CURRENCY TXN",
+   "amount": "105.00",
+   "kind": "forex_markup",
+   "date": "15/09/2026"
+  },
+  {
+   "description": "IGST @18% ON MARKUP FEE",
+   "amount": "18.90",
+   "kind": "gst",
+   "date": "15/09/2026"
+  },
+  {
+   "description": "RENTPAY - RENT PAYMENT FEE",
+   "amount": "150.00",
+   "kind": "rent_payment_fee",
+   "date": "18/09/2026"
+  },
+  {
+   "description": "IGST @18% ON RENT FEE",
+   "amount": "27.00",
+   "kind": "gst",
+   "date": "18/09/2026"
+  },
+  {
+   "description": "LATE PAYMENT FEE",
+   "amount": "600.00",
+   "kind": "late_payment_fee",
+   "date": "26/09/2026"
+  },
+  {
+   "description": "IGST @18% ON LATE FEE",
+   "amount": "108.00",
+   "kind": "gst",
+   "date": "26/09/2026"
+  },
+  {
+   "description": "FUEL SURCHARGE",
+   "amount": "20.00",
+   "kind": "fuel_surcharge",
+   "date": "02/10/2026"
+  },
+  {
+   "description": "IGST @18% ON FUEL SURCHARGE",
+   "amount": "3.60",
+   "kind": "gst",
+   "date": "02/10/2026"
+  },
+  {
+   "description": "ANNUAL MEMBERSHIP FEE",
+   "amount": "1,000.00",
+   "kind": "annual_fee",
+   "date": "03/10/2026"
+  },
+  {
+   "description": "IGST @18% ON ANNUAL FEE",
+   "amount": "180.00",
+   "kind": "gst",
+   "date": "03/10/2026"
+  },
+  {
+   "description": "EMI INTEREST - SAMSUNG 1/6",
+   "amount": "312.40",
+   "kind": "emi_interest",
+   "date": "04/10/2026"
+  },
+  {
+   "description": "EMI PROCESSING FEE",
+   "amount": "199.00",
+   "kind": "emi_processing_fee",
+   "date": "04/10/2026"
+  },
+  {
+   "description": "OVERLIMIT FEE",
+   "amount": "600.00",
+   "kind": "overlimit_fee",
+   "date": "04/10/2026"
+  },
+  {
+   "description": "FINANCE CHARGES",
+   "amount": "412.50",
+   "kind": "finance_charge",
+   "date": "05/10/2026"
+  },
+  {
+   "description": "IGST @18% ON FINANCE CHARGES",
+   "amount": "74.25",
+   "kind": "gst",
+   "date": "05/10/2026"
+  }
+ ],
+ "credits": [
+  {
+   "description": "FUEL SURCHARGE WAIVER",
+   "amount": "20.00",
+   "kind": "fuel_surcharge_waiver"
+  }
+ ]
+}

@@ -20,6 +20,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -290,3 +291,42 @@ class EvalRun(Base):
     id: Mapped[uuid.UUID] = _uuid_pk()
     at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     metrics: Mapped[dict[str, Any]] = mapped_column(JSONB)
+
+
+class JobStatus(enum.StrEnum):
+    QUEUED = "queued"
+    RUNNING = "running"
+    DONE = "done"
+    FAILED = "failed"
+
+
+class Job(Base):
+    """Durable background job (reports, URL fetches). A running job holds a lease that its worker
+    renews; if the worker dies (restart, deploy), the lease runs out and the job is run again."""
+
+    __tablename__ = "job"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    name: Mapped[str] = mapped_column(String(64))
+    args: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    status: Mapped[JobStatus] = mapped_column(
+        _enum(JobStatus, "job_status"), default=JobStatus.QUEUED
+    )
+    attempts: Mapped[int] = mapped_column(Integer, default=0)  # runs that raised an error
+    max_attempts: Mapped[int] = mapped_column(Integer, default=3)
+    starts: Mapped[int] = mapped_column(Integer, default=0)  # every claim, incl. interrupted runs
+    run_after: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    locked_by: Mapped[str | None] = mapped_column(String(64))
+    lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_error: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    __table_args__ = (
+        Index("ix_job_claim", "status", "run_after"),
+        # Startup recovery looks up live jobs by their first argument (the report id).
+        Index(
+            "ix_job_live_subject",
+            text("(args ->> 0)"),
+            postgresql_where=text("status IN ('queued', 'running')"),
+        ),
+    )

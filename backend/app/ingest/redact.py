@@ -6,8 +6,9 @@ import re
 _RULES: list[tuple[str, re.Pattern[str]]] = [
     ("EMAIL", re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b")),
     ("PAN", re.compile(r"\b[A-Z]{5}\d{4}[A-Z]\b")),
-    # Card numbers: 13-19 digits, optionally grouped by spaces/dashes.
-    ("CARD", re.compile(r"\b(?:\d[ -]?){12,18}\d\b")),
+    # Card numbers: 13-19 digits, optionally grouped by spaces/dashes. Never ending at a decimal
+    # point: "7471 2510216 21469.29" is a card tail, a bill number and an amount, not a card.
+    ("CARD", re.compile(r"\b(?:\d[ -]?){12,18}\d\b(?![.,]\d)")),
     ("AADHAAR", re.compile(r"\b\d{4}[ -]?\d{4}[ -]?\d{4}\b")),
     ("PHONE", re.compile(r"(?<![\d₹.,])(?:\+91[ -]?|0)?[6-9]\d{4}[ -]?\d{5}\b")),
     ("ACCOUNT", re.compile(r"(?i)(?<=a/c)\s*(?:no\.?|number)?\s*[:#-]?\s*\d{6,18}\b")),

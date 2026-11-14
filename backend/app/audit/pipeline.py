@@ -19,6 +19,8 @@ from app.analysis.facts import ClaimFact, Finding, SourceFact, SubQuestion
 from app.analysis.rules import Analysis
 from app.audit import prompts
 from app.config import Settings
+from app.db import make_sessionmaker
+from app.discovery.india import NOT_INDIAN, card_origin, foreign_issuer, indian_text
 from app.extract.prompt import scope_key
 from app.extract.service import ExtractionStats, extract_source
 from app.ingest.fetch import Fetcher
@@ -47,6 +49,9 @@ Emit = Callable[[str, dict[str, Any]], Awaitable[None]]
 
 async def _noop(_: str, __: dict[str, Any]) -> None:
     return None
+
+
+SOURCE_CONCURRENCY = 3  # documents read at the same time
 
 
 class Trace:
@@ -183,6 +188,18 @@ async def run_audit(
     if audit is None:
         raise ValueError(f"audit {audit_id} not found")
     trace = Trace(emit)
+
+    async def refuse_foreign() -> Audit:
+        """India-only guardrail: stop before any (further) AI call and say why."""
+        audit.status = AuditStatus.FAILED
+        audit.stats = {**(audit.stats or {}), "error": NOT_INDIAN, "not_indian": True}
+        audit.finished_at = datetime.now(UTC)
+        await _retry_db(session, session.commit, refresh=[audit])
+        await emit("failed", {"error": NOT_INDIAN, "not_indian": True})
+        return audit
+
+    if foreign_issuer(audit.product_name):
+        return await refuse_foreign()
     audit.status = AuditStatus.RUNNING
     await sync_pack(session, pack)
     await session.commit()
@@ -208,32 +225,52 @@ async def run_audit(
             await session.refresh(s)
             await step.done(status=s.status.value, method=s.fetch_method, error=s.error)
 
-    # 3. Extract claims from every parsed source
+    # India-only guardrail, before reading: something must show the card is Indian. The name and
+    # sources usually settle it; the documents' text is loaded only when they don't.
+    origin = card_origin(audit.product_name, [s.url for s in sources if s.url])
+    if origin is None:
+        texts = await session.scalars(
+            select(SourcePage.text).where(SourcePage.source_id.in_([s.id for s in sources]))
+        )
+        origin = any(indian_text(t) for t in texts)
+    if not origin:
+        return await refuse_foreign()
+
+    # 3. Extract claims, several sources at once. Each task gets its own session: one
+    # AsyncSession must never be shared between concurrent tasks.
+    sessions = make_sessionmaker(session.bind)  # type: ignore[arg-type]
+    gate = asyncio.Semaphore(SOURCE_CONCURRENCY)
+
+    async def extract_isolated(source_id: uuid.UUID, title: str | None) -> None:
+        async with gate:
+            step = await trace.step("extract", source_id=str(source_id), title=title)
+            try:
+                async with sessions() as own:
+                    src = await own.get(Source, source_id)
+                    assert src is not None
+
+                    async def extract_one() -> ExtractionStats:
+                        result = await extract_source(
+                            own, llm, pack, src, product=audit.product_name
+                        )
+                        src.status = SourceStatus.EXTRACTED
+                        await own.commit()
+                        return result
+
+                    # Retried on dropped connections; LLM output is cached per chunk, so a retry is free.
+                    stats = await _retry_db(own, extract_one, refresh=[src])
+                await step.done(**{k: v for k, v in stats.as_dict().items() if k != "llm_attempts"})
+            except Exception as exc:  # noqa: BLE001 - one source must not fail the audit
+                log.exception("extraction failed", extra={"source_id": str(source_id)})
+                await step.done(error=f"{type(exc).__name__}: {str(exc)[:200]}")
+
+    await asyncio.gather(*(
+        extract_isolated(s.id, s.title) for s in sources
+        if s.status in (SourceStatus.PARSED, SourceStatus.EXTRACTED)
+    ))  # fmt: skip
+    await session.commit()  # end the read transaction before re-reading what the tasks wrote
     for s in sources:
-        if s.status not in (SourceStatus.PARSED, SourceStatus.EXTRACTED):
-            continue
-        step = await trace.step("extract", source_id=str(s.id), title=s.title)
-        try:
-
-            async def extract_one(src: Source = s) -> ExtractionStats:
-                result = await extract_source(session, llm, pack, src, product=audit.product_name)
-                src.status = SourceStatus.EXTRACTED
-                await session.commit()
-                return result
-
-            # Retried on dropped connections; LLM output is cached per chunk, so a retry is free.
-            stats = await _retry_db(session, extract_one, refresh=[audit, *sources])
-            await step.done(**{k: v for k, v in stats.as_dict().items() if k != "llm_attempts"})
-        except Exception as exc:  # noqa: BLE001 - one source must not fail the audit
-            source_id = str(s.id)
-            await session.rollback()
-            # A rollback expires every loaded object; touching one afterwards would trigger a lazy
-            # load outside the async context (MissingGreenlet). Reload what we keep using.
-            await session.refresh(audit)
-            for other in sources:
-                await session.refresh(other)
-            log.exception("extraction failed", extra={"source_id": source_id})
-            await step.done(error=f"{type(exc).__name__}: {str(exc)[:200]}")
+        await session.refresh(s)
 
     # 4. Analyse (reads only; retried if the connection drops)
     step = await trace.step("analyse")

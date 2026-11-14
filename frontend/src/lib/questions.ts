@@ -18,12 +18,12 @@ const RBI_CARDS: QuestionLink = {
   label: "RBI Master Direction on credit cards",
   href: "https://www.rbi.org.in/Scripts/BS_ViewMasDirections.aspx?id=12300",
 };
-const RBI_COMPLAINT: QuestionLink = { label: "RBI complaint portal", href: "https://cms.rbi.org.in/" };
+export const RBI_COMPLAINT: QuestionLink = { label: "RBI complaint portal", href: "https://cms.rbi.org.in/" };
 const RBI_FRAUD: QuestionLink = {
   label: "RBI rules on unauthorised transactions",
   href: "https://rbi.org.in/Scripts/NotificationUser.aspx?Id=11040",
 };
-const CYBERCRIME: QuestionLink = { label: "National cybercrime portal", href: "https://cybercrime.gov.in/" };
+export const CYBERCRIME: QuestionLink = { label: "National cybercrime portal", href: "https://cybercrime.gov.in/" };
 const AUDIT: QuestionLink = { label: "Get a report on your card", href: "/#start" };
 
 // Rules quoted from the RBI Master Direction (updated 7 March 2024) and the 2017 customer

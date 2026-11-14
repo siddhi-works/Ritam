@@ -1,0 +1,27 @@
+{
+ "statement_date": "05/10/2026",
+ "payment_due_date": "25/10/2026",
+ "payment_received_date": "20/09/2026",
+ "total_due": "3,486.75",
+ "minimum_due": "175.00",
+ "credit_limit": "50,000",
+ "payments_total": "12,000.00",
+ "reward_points_opening": null,
+ "reward_points_closing": null,
+ "reward_points_expired": null,
+ "charges": [
+  {
+   "description": "FINANCE CHARGES",
+   "amount": "412.50",
+   "kind": "finance_charge",
+   "date": "05/10/2026"
+  },
+  {
+   "description": "IGST @18% ON FINANCE CHARGES",
+   "amount": "74.25",
+   "kind": "gst",
+   "date": "05/10/2026"
+  }
+ ],
+ "credits": []
+}

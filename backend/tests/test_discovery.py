@@ -105,7 +105,7 @@ async def test_discover_searches_for_unknown_card_and_tags_results() -> None:
     try:
         out = await discover(
             question="What are the fees?",
-            product="IndusInd Legend",
+            product="Kotak White Reserve",
             search=search,
         )
     finally:
@@ -171,7 +171,7 @@ def test_discover_endpoint_works_without_search_key() -> None:
 @pytest.mark.parametrize(
     "text",
     [
-        "IndusInd Legend credit card",  # used to match AU LIT via "credit card" + "lit"
+        "Kotak White Reserve credit card",  # shares only generic words with listed cards
         "hdfc",  # bank alone is not a card
         "HDFC Regalia",  # same bank, different card
         "credit card",
@@ -212,3 +212,24 @@ async def test_card_is_detected_from_pasted_text_without_searching_it() -> None:
         search=spy,
     )  # type: ignore[arg-type]
     assert unknown["matched_card"] is None and unknown["searched"] is False
+
+
+def test_amex_outside_india_is_not_official() -> None:
+    assert (
+        classify("https://www.americanexpress.com/en-gb/credit-cards/rewards-credit-card")[1]
+        is False
+    )
+    assert (
+        classify("https://www.americanexpress.com/in/credit-cards/membership-rewards-card")[1]
+        is True
+    )
+
+
+def test_new_catalogue_cards_match() -> None:
+    for text, card_id in [
+        ("hdfc regalia gold", "hdfc-regalia-gold"),
+        ("axis ace", "axis-ace"),
+        ("sbi cashback", "sbi-cashback"),
+    ]:
+        card = match_card(text)
+        assert card is not None and card.id == card_id

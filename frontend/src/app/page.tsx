@@ -4,6 +4,7 @@ import { AuditForm } from "@/components/audit-form";
 import { ExampleAudits } from "@/components/example-audits";
 import { HeroCards } from "@/components/hero-cards";
 import { LabelTag } from "@/components/label-tag";
+import { ProblemRouter } from "@/components/problem-router";
 import { Specimen } from "@/components/specimen";
 import { Button } from "@/components/ui/button";
 import type { Label } from "@/lib/api";
@@ -11,7 +12,7 @@ import { LABELS } from "@/lib/vocab";
 
 // Real numbers only: the checked catalogue, the example reports, and the Questions page.
 const PROOF = [
-  { n: "7", label: "popular cards on Ritam's checked list" },
+  { n: "15", label: "popular cards on Ritam's checked list" },
   { n: "140", label: "statements in the sample reports, each matched to the bank's exact line" },
   { n: "16", label: "common questions answered from RBI's own rules" },
 ];
@@ -46,21 +47,39 @@ export default function Home() {
               Ritam checks.
             </h1>
             <p className="mt-7 max-w-md text-lg leading-relaxed text-ink/80">
-              Not sure your credit card&apos;s charges and benefits are what you were told? Type the card&apos;s name.
-              Ritam reads the bank&apos;s official papers and tells you, in simple words, what&apos;s right, what changed and
-              what to ask the bank, with proof.
+              A charge you didn&apos;t expect, a card that won&apos;t close, or terms you aren&apos;t sure of? Ritam reads
+              your bill and the bank&apos;s own papers, tells you in simple words what&apos;s right and what to ask the
+              bank, and writes the complaint for you, with proof.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Button asChild size="lg" className="h-12 rounded-md px-7 text-base font-semibold">
-                <a href="#start">Get my card report</a>
+                <a href="#help">Something went wrong?</a>
               </Button>
               <Button asChild size="lg" variant="outline" className="h-12 rounded-md border-ink/45 bg-transparent px-7 text-base">
-                <a href="#examples">See a sample report</a>
+                <a href="/statement">Check my bill</a>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="h-12 rounded-md border-ink/45 bg-transparent px-7 text-base">
+                <a href="#start">Get a card report</a>
               </Button>
             </div>
-            <p className="mt-4 text-sm text-mute">Free. No sign-up. Takes about 2 minutes.</p>
+            <p className="mt-4 text-sm text-mute">Free. No sign-up. Your bills are never stored.</p>
           </div>
           <HeroCards />
+        </div>
+      </section>
+
+      <section id="help" aria-labelledby="help-title" className="scroll-mt-6 border-b border-rule">
+        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1fr_1.4fr]">
+          <div>
+            <h2 id="help-title" className="font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
+              Something went wrong with your card?
+            </h2>
+            <p className="mt-3 max-w-prose text-lg leading-relaxed text-ink/80">
+              A charge you didn&apos;t expect, a card that won&apos;t close, points that vanished. Tell Ritam in your own
+              words, in English or Hindi. It shows what RBI&apos;s rules say and takes you to the right check.
+            </p>
+          </div>
+          <ProblemRouter />
         </div>
       </section>
 

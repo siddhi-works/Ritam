@@ -226,3 +226,86 @@ def test_rupee_amount_glued_to_rs_dot_is_parsed() -> None:
     assert normalize_value("Rs.1,000 plus applicable taxes", "money")["value"] == 1000
     assert numbers_supported("Rs.1,000", "fee of Rs.1,000 plus taxes")
     assert normalize_value("N/A", "money")["value"] == 0
+
+
+async def test_chunks_run_in_parallel_keep_order_and_skip_boilerplate() -> None:
+    import asyncio
+
+    from app.extract import service
+
+    class SlowLLM(FakeLLM):
+        def __init__(self) -> None:
+            super().__init__([])
+            self.active = self.peak = 0
+
+        async def generate_structured(self, **kw: Any) -> Any:
+            self.active += 1
+            self.peak = max(self.peak, self.active)
+            await asyncio.sleep(0.05)
+            self.active -= 1
+            prompt = kw["prompt"]
+            fee = "Rs 500" if "page 1]" in prompt else "Rs 900"
+            quote = (
+                "Annual fee: Rs 500 per year" if fee == "Rs 500" else "Annual fee: Rs 900 per year"
+            )
+            self.calls += 1
+            return LLMResult(data=kw["schema"].model_validate({"claims": [{"attribute": "annual_fee", "value_raw": fee, "quote": quote}]}),
+                             provider="gemini", model="flash-lite")  # fmt: skip
+
+    pages = _pages(
+        [
+            "Annual fee: Rs 500 per year " + "x " * 20000,
+            "Annual fee: Rs 900 per year " + "y " * 20000,
+            "This section describes the company history in general terms. " * 10,
+        ]
+    )
+    llm = SlowLLM()
+    claims, stats = await service.extract_document(
+        llm, PACK, pages, content_hash="h", title="t", kind="mitc_pdf"
+    )
+    assert llm.peak >= 2  # LLM calls overlapped
+    assert stats.skipped_chunks == 1 and llm.calls == 2  # boilerplate page cost no AI call
+    assert [c.value_raw for c in claims if c.verified] == [
+        "Rs 500",
+        "Rs 900",
+    ]  # document order kept
+
+
+def test_conditions_with_invented_numbers_are_dropped() -> None:
+    from app.extract.quotecheck import QuoteLocator
+    from app.extract.service import check_claim
+
+    loc = QuoteLocator(
+        _pages(["Annual fee waived on eligible spends of INR 25,00,000 in the year."])
+    )
+    raw = {"attribute": "annual_fee_waiver", "value_raw": "INR 25,00,000",
+           "quote": "Annual fee waived on eligible spends of INR 25,00,000 in the year.",
+           "conditions": "eligible spends of INR 25,000,000 in the year"}  # fmt: skip
+    c = check_claim(raw, loc, PACK, "fake")
+    assert c.verified and c.conditions is None
+    c = check_claim({**raw, "conditions": "on eligible spends in the year"}, loc, PACK, "fake")
+    assert c.conditions == "on eligible spends in the year"
+
+
+async def test_finished_parts_are_cached_even_when_another_part_crashes() -> None:
+    import pytest
+
+    from app.extract import service
+
+    class HalfBroken(FakeLLM):
+        async def generate_structured(self, **kw: Any) -> Any:
+            self.calls += 1
+            if "y y y" in kw["prompt"]:
+                raise RuntimeError("database hiccup")  # not an LLMError: the job will retry
+            return LLMResult(data=kw["schema"].model_validate({"claims": [{"attribute": "annual_fee", "value_raw": "Rs 500", "quote": "Annual fee: Rs 500 per year"}]}),
+                             provider="gemini", model="flash-lite")  # fmt: skip
+
+    pages = _pages(
+        ["Annual fee: Rs 500 per year " + "x " * 20000, "Annual fee: Rs 900 " + "y " * 20000]
+    )
+    cache = DictCache()
+    with pytest.raises(RuntimeError):
+        await service.extract_document(
+            HalfBroken([]), PACK, pages, content_hash="h", title="t", kind="mitc_pdf", cache=cache
+        )
+    assert ("h", 0) in cache.store  # the paid AI answer survives for the retry

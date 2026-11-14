@@ -65,3 +65,77 @@ cards:
       - {url: "https://www.au.bank.in/personal-banking/credit-cards/lit-credit-card", kind: official_page, title: "AU Bank: LIT card page", render: true}
       - {url: "https://www.bankbazaar.com/credit-card/au-bank-lit-credit-card.html", kind: aggregator, title: "BankBazaar: AU LIT"}
 
+
+  - id: sbi-cashback
+    bank: SBI Card
+    name: SBI Card Cashback credit card
+    aliases: [sbi cashback, cashback sbi, cashback sbi card]
+    sources:
+      - {url: "https://www.sbicard.com/sbi-card-en/assets/docs/pdf/ekit-tncs/cashback-tnc-ekit.pdf", kind: mitc_pdf, title: "SBI Card: Cashback card terms (PDF)"}
+      - {url: "https://www.sbicard.com/sbi-card-en/assets/docs/pdf/most-important-terms-and-conditions/mitc-english.pdf", kind: mitc_pdf, title: "SBI Card: credit card MITC (PDF)"}
+      - {url: "https://www.paisabazaar.com/sbi-bank/cashback-sbi-card", kind: aggregator, title: "Paisabazaar: SBI Cashback"}
+
+  - id: hdfc-regalia-gold
+    bank: HDFC Bank
+    name: HDFC Bank Regalia Gold credit card
+    aliases: [regalia gold, hdfc regalia gold, regalia gold hdfc]
+    sources:
+      - {url: "https://www.hdfc.bank.in/credit-cards/regalia-gold-credit-card", kind: official_page, title: "HDFC Bank: Regalia Gold card page"}
+      - {url: "https://www.hdfc.bank.in/credit-cards/regalia-gold-credit-card/fees-and-charges", kind: official_page, title: "HDFC Bank: Regalia Gold fees and charges"}
+      - {url: "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/personal-mitc/mitc-in-english.pdf", kind: mitc_pdf, title: "HDFC Bank: credit card MITC (PDF)"}
+      - {url: "https://www.paisabazaar.com/hdfc-bank/hdfc-regalia-gold-credit-card", kind: aggregator, title: "Paisabazaar: HDFC Regalia Gold"}
+
+  - id: axis-ace
+    bank: Axis Bank
+    name: Axis Bank ACE credit card
+    aliases: [axis ace, ace axis, ace credit card]
+    sources:
+      - {url: "https://www.axis.bank.in/cards/credit-card/axis-bank-ace-credit-card", kind: official_page, title: "Axis Bank: ACE card page"}
+      - {url: "https://www.axis.bank.in/docs/default-source/default-document-library/mitc-credit-cards.pdf", kind: mitc_pdf, title: "Axis Bank: credit card MITC (PDF)"}
+      - {url: "https://campaign.axis.bank.in/generic/axis-bank-ace-credit-card-terms-and-conditions.pdf", kind: bank_notice, title: "Axis Bank: ACE terms and conditions (PDF)"}
+      - {url: "https://www.paisabazaar.com/axis-bank/ace-credit-card", kind: aggregator, title: "Paisabazaar: Axis ACE"}
+
+  - id: flipkart-axis
+    bank: Axis Bank
+    name: Flipkart Axis Bank credit card
+    aliases: [flipkart axis, axis flipkart, flipkart credit card]
+    sources:
+      - {url: "https://www.axis.bank.in/cards/credit-card/flipkart-axisbank-credit-card", kind: official_page, title: "Axis Bank: Flipkart card page"}
+      - {url: "https://www.axis.bank.in/docs/default-source/default-document-library/mitc-credit-cards.pdf", kind: mitc_pdf, title: "Axis Bank: credit card MITC (PDF)"}
+
+  - id: icici-coral
+    bank: ICICI Bank
+    name: ICICI Bank Coral credit card
+    aliases: [icici coral, coral icici, coral credit card]
+    sources:
+      - {url: "https://www.icici.bank.in/personal-banking/cards/credit-card/coral-credit-card", kind: official_page, title: "ICICI Bank: Coral card page"}
+      - {url: "https://www.icici.bank.in/personal-banking/cards/credit-card/upcoming-changes-features-and-charges", kind: bank_notice, title: "ICICI Bank: upcoming changes to features and charges"}
+      - {url: "https://www.paisabazaar.com/icici-bank/coral-credit-card", kind: aggregator, title: "Paisabazaar: ICICI Coral"}
+
+  - id: indusind-legend
+    bank: IndusInd Bank
+    name: IndusInd Bank Legend credit card
+    aliases: [indusind legend, legend indusind, legend credit card]
+    sources:
+      - {url: "https://www.indusind.bank.in/in/en/personal/cards/credit-card/legend-credit-card.html", kind: official_page, title: "IndusInd Bank: Legend card page"}
+      - {url: "https://www.indusind.bank.in/content/dam/indusind-corporate/credit-cards/MITC_Premium.pdf", kind: mitc_pdf, title: "IndusInd Bank: premium cards MITC (PDF)"}
+      - {url: "https://www.indusind.bank.in/content/dam/indusind-corporate/Other/welcomekit/credit-card-benefits/Legend_Benefit_Guide_19-12-2025.pdf", kind: official_page, title: "IndusInd Bank: Legend benefit guide (PDF)"}
+      - {url: "https://www.paisabazaar.com/indusind-bank/indusind-bank-legend-credit-card", kind: aggregator, title: "Paisabazaar: IndusInd Legend"}
+
+  - id: hdfc-swiggy
+    bank: HDFC Bank
+    name: Swiggy HDFC Bank credit card
+    aliases: [swiggy hdfc, hdfc swiggy, swiggy credit card]
+    sources:
+      - {url: "https://www.hdfc.bank.in/credit-cards/swiggy-hdfc-bank-credit-card", kind: official_page, title: "HDFC Bank: Swiggy card page"}
+      - {url: "https://www.hdfc.bank.in/credit-cards/swiggy-hdfc-bank-credit-card/fees-and-charges", kind: official_page, title: "HDFC Bank: Swiggy card fees and charges"}
+      - {url: "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/personal-mitc/mitc-in-english.pdf", kind: mitc_pdf, title: "HDFC Bank: credit card MITC (PDF)"}
+      - {url: "https://www.paisabazaar.com/hdfc-bank/swiggy-credit-card", kind: aggregator, title: "Paisabazaar: Swiggy HDFC"}
+
+  - id: amex-mrcc
+    bank: American Express
+    name: American Express Membership Rewards credit card
+    aliases: [amex mrcc, amex membership rewards, membership rewards credit card, mrcc]
+    sources:
+      - {url: "https://www.americanexpress.com/in/credit-cards/membership-rewards-card", kind: official_page, title: "American Express India: Membership Rewards card"}
+      - {url: "https://www.americanexpress.com/content/dam/amex/in/legal/mitc/Lending_MITC_English.pdf", kind: mitc_pdf, title: "American Express India: credit card MITC (PDF)"}

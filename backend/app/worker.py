@@ -42,7 +42,12 @@ async def shutdown(ctx: dict[str, Any]) -> None:
 
 
 async def audit_job(ctx: dict[str, Any], audit_id: str) -> str:
-    return await jobs.audit_job(ctx["jc"], audit_id)
+    try:
+        return await jobs.audit_job(ctx["jc"], audit_id)
+    except Exception as exc:
+        # ARQ doesn't retry by default, so this attempt was the last one.
+        await jobs.give_up(ctx["jc"], "audit_job", [audit_id], f"{type(exc).__name__}: {exc}")
+        raise
 
 
 async def ingest_job(ctx: dict[str, Any], source_id: str) -> str:

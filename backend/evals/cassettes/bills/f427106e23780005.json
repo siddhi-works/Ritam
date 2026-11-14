@@ -1,0 +1,21 @@
+{
+ "statement_date": "20-10-16",
+ "payment_due_date": "04-11-16",
+ "payment_received_date": null,
+ "total_due": "6884.29",
+ "minimum_due": "345.00",
+ "credit_limit": null,
+ "payments_total": "14760.00",
+ "reward_points_opening": null,
+ "reward_points_closing": null,
+ "reward_points_expired": null,
+ "charges": [
+  {
+   "description": "PURCHASE INTEREST",
+   "amount": "0.01",
+   "kind": "finance_charge",
+   "date": null
+  }
+ ],
+ "credits": []
+}

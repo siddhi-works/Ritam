@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, IBM_Plex_Sans, IBM_Plex_Sans_Devanagari, IBM_Plex_Serif } from "next/font/google";
 import Link from "next/link";
 
+import { SiteNav } from "@/components/site-nav";
+
 import "./globals.css";
 
 const plexSans = IBM_Plex_Sans({
@@ -40,7 +42,15 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, them
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en-IN">
+    <html lang="en-IN" suppressHydrationWarning>
+      <head>
+        {/* Applies saved reading options before the page paints. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{for(const p of ["contrast","large"])if(localStorage.getItem("ritam."+p)==="1")document.documentElement.dataset[p]="1"}catch(e){}`,
+          }}
+        />
+      </head>
       <body className={`${plexSans.variable} ${plexDeva.variable} ${plexSerif.variable} ${display.variable} font-sans`}>
         <a
           href="#main"
@@ -49,21 +59,14 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           Skip to content
         </a>
         <header className="border-b border-rule bg-night">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-            <Link href="/" className="flex items-baseline gap-2 text-ink" aria-label="Ritam home">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 px-4 py-3 sm:px-6">
+            <Link href="/" className="inline-flex min-h-11 items-center gap-2 text-ink" aria-label="Ritam home">
               <span className="font-display text-xl font-extrabold tracking-tight">Ritam</span>
               <span lang="sa" className="text-sm text-mute">
                 ऋतम्
               </span>
             </Link>
-            <nav aria-label="Main" className="flex items-center gap-5 text-sm font-medium text-ink">
-              <Link href="/questions" className="inline-flex min-h-11 items-center underline-offset-4 hover:underline">
-                Questions
-              </Link>
-              <Link href="/#start" className="inline-flex min-h-11 items-center underline-offset-4 hover:underline">
-                Get a card report
-              </Link>
-            </nav>
+            <SiteNav />
           </div>
         </header>
         <div id="main">{children}</div>

@@ -7,18 +7,18 @@ from arq.connections import ArqRedis
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from redis.asyncio import ConnectionPool
-from sqlalchemy import update
+from sqlalchemy import String, cast, exists, update
 from sqlalchemy.exc import SQLAlchemyError
 
 from app import jobs
-from app.api import audits, discover, health, internal, sources
+from app.api import audits, cards, cases, discover, health, internal, sources, statements, triage
 from app.config import Settings, get_settings
 from app.db import make_engine, make_sessionmaker
 from app.errors import install_error_handlers
 from app.graph import make_driver
 from app.llm import make_router
 from app.llm.budget import SqlBudget
-from app.models import Audit, AuditStatus
+from app.models import Audit, AuditStatus, Job, JobStatus
 from app.observability import configure_logging, request_id_var
 from app.storage import LocalStore
 
@@ -26,13 +26,21 @@ log = logging.getLogger(__name__)
 
 
 async def recover_interrupted_audits(app: FastAPI) -> int:
-    """In-process mode (no Redis): a restart kills any running audit job, so mark those audits
-    failed instead of leaving the UI waiting forever. With Redis, ARQ owns job recovery."""
+    """Reports left queued or running with no live job behind them (from before the durable queue,
+    or whose job already gave up) are marked failed so nobody waits forever. Reports that still
+    have a queued or running job are left alone: the queue runs them again."""
     try:
         async with app.state.sessionmaker() as session:
             result = await session.execute(
                 update(Audit)
-                .where(Audit.status.in_([AuditStatus.QUEUED, AuditStatus.RUNNING]))
+                .where(
+                    Audit.status.in_([AuditStatus.QUEUED, AuditStatus.RUNNING]),
+                    ~exists().where(
+                        Job.name == "audit_job",
+                        Job.args[0].astext == cast(Audit.id, String),
+                        Job.status.in_([JobStatus.QUEUED, JobStatus.RUNNING]),
+                    ),
+                )
                 .values(
                     status=AuditStatus.FAILED,
                     stats=Audit.stats.op("||")(
@@ -79,16 +87,19 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.job_context = jobs.JobContext(
             settings, app.state.sessionmaker, app.state.llm, app.state.bus
         )
-        app.state.dispatcher = jobs.Dispatcher(app.state.redis, app.state.job_context)
-        if app.state.redis is None:
-            await recover_interrupted_audits(app)
+        app.state.dispatcher = jobs.Dispatcher(
+            app.state.redis, jobs.make_worker(app.state.job_context)
+        )
+        await recover_interrupted_audits(app)
+        app.state.dispatcher.worker.start()
         log.info(
             "api started",
-            extra={"env": settings.env, "queue": "redis" if app.state.redis else "in_process"},
+            extra={"env": settings.env, "queue": "redis" if app.state.redis else "durable"},
         )
         try:
             yield
         finally:
+            await app.state.dispatcher.worker.stop()
             await app.state.llm.aclose()
             await app.state.job_context.aclose()
             if app.state.neo4j:
@@ -125,6 +136,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(audits.router)
     app.include_router(internal.router)
     app.include_router(discover.router)
+    app.include_router(cards.router)
+    app.include_router(statements.router)
+    app.include_router(cases.router)
+    app.include_router(triage.router)
     return app
 
 

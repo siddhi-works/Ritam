@@ -9,8 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { VoiceButton } from "@/components/assist";
 import { useCreep, Working } from "@/components/working";
-import { apiPost, problemMessage, uploadFile, type DiscoverOut } from "@/lib/api";
+import Link from "next/link";
+
+import { apiGet, apiPost, problemMessage, uploadFile, type DiscoverOut } from "@/lib/api";
 import { ADDABLE_KINDS, SOURCE_KINDS } from "@/lib/vocab";
 
 type Mode = "link" | "file" | "text" | "chat";
@@ -48,6 +51,19 @@ const FINDING_LINES = [
 
 const MAX_SOURCES = 12;
 
+interface CardOut {
+  id: string;
+  name: string;
+  report_id: string | null;
+  checked_at: string | null;
+}
+type ReadyReport = CardOut & { report_id: string; checked_at: string };
+
+function ago(iso: string) {
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  return days <= 0 ? "today" : days === 1 ? "yesterday" : `${days} days ago`;
+}
+
 let nextId = 1;
 const newRow = (mode: Mode = "link"): Row => ({
   id: nextId++,
@@ -67,6 +83,7 @@ export function AuditForm() {
   const formId = useId();
   const [question, setQuestion] = useState("");
   const [product, setProduct] = useState("");
+  const [ready, setReady] = useState<ReadyReport | null>(null);
   const [claim, setClaim] = useState("");
   const [manual, setManual] = useState<DiscoverOut | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
@@ -78,6 +95,18 @@ export function AuditForm() {
   useEffect(() => {
     if (manual) manualHeading.current?.focus();
   }, [manual]);
+
+  // A recent public report for the same card can be opened instantly.
+  useEffect(() => {
+    const q = product.trim();
+    if (q.length < 3) return setReady(null);
+    const id = setTimeout(() => {
+      apiGet<CardOut[]>(`/api/cards?q=${encodeURIComponent(q)}`)
+        .then((cards) => setReady(cards[0]?.report_id ? (cards[0] as ReadyReport) : null))
+        .catch(() => setReady(null));
+    }, 400);
+    return () => clearTimeout(id);
+  }, [product]);
 
   // The form collapses into a progress box; keep it in view.
   useEffect(() => {
@@ -112,6 +141,11 @@ export function AuditForm() {
         product: product.trim() || null,
         context: claim.trim() || null,
       });
+      if (found.not_indian) {
+        setError(found.message ?? "Ritam only checks credit cards issued in India.");
+        setBusy(null);
+        return;
+      }
       const urls = found.candidates
         .slice(0, MAX_SOURCES - 1)
         .map((c) => ({ type: "url", url: c.url, kind: c.kind, title: c.title }));
@@ -193,6 +227,16 @@ export function AuditForm() {
             autoComplete="off"
             className="h-12 bg-surface text-base"
           />
+          <VoiceButton what="the card name" onText={setProduct} />
+          {ready && (
+            <p className="rounded-md border border-neon/60 bg-surface px-4 py-3 text-[0.9375rem] text-ink" role="status">
+              Ritam checked <b>{ready.name}</b> {ago(ready.checked_at)}.{" "}
+              <Link href={`/audit/${ready.report_id}`} className="font-semibold text-neon underline underline-offset-4">
+                See that report now
+              </Link>
+              , or run a fresh check below.
+            </p>
+          )}
         </div>
 
         <fieldset className="space-y-3">
@@ -223,6 +267,7 @@ export function AuditForm() {
             rows={2}
             className="bg-surface text-base"
           />
+          <VoiceButton what="your question" languages={["en-IN", "hi-IN"]} onText={setQuestion} />
         </fieldset>
 
         <div className="space-y-2">

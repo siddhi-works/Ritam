@@ -1,4 +1,5 @@
-"""Job dispatch and progress events, through Redis/ARQ or in-process when Redis isn't configured."""
+"""Job bodies, dispatch and progress events. Jobs run through Redis/ARQ when it is configured and
+answers, otherwise through the durable Postgres queue in this process (app.queue)."""
 
 import asyncio
 import json
@@ -6,6 +7,7 @@ import logging
 import uuid
 from collections import defaultdict
 from collections.abc import AsyncIterator
+from functools import partial
 from typing import Any
 
 from arq.connections import ArqRedis
@@ -16,7 +18,9 @@ from app.config import Settings
 from app.ingest.fetch import make_fetcher
 from app.ingest.service import ingest_url
 from app.llm import LLMProvider
+from app.models import Audit, AuditStatus
 from app.packs import load_pack
+from app.queue import PgJobStore, Worker
 from app.storage import LocalStore
 
 log = logging.getLogger(__name__)
@@ -84,32 +88,42 @@ class JobContext:
 
 
 async def audit_job(jc: JobContext, audit_id: str) -> str:
+    """Run one report. Errors propagate: the queue retries, and only after the last attempt does
+    `give_up` mark the report failed (re-running is safe: findings are replaced, reads cached)."""
+
     async def emit(event: str, data: dict[str, Any]) -> None:
         await jc.bus.publish(audit_id, event, data)
 
     async with jc.sessionmaker() as session:
-        try:
-            from app.models import Audit
-
-            row = await session.get(Audit, uuid.UUID(audit_id))
-            pack = load_pack(row.pack if row is not None else "credit_card")
-            audit = await run_audit(
-                session, audit_id=uuid.UUID(audit_id), llm=jc.llm, fetcher=jc.fetcher,
-                store=jc.store, settings=jc.settings, pack=pack, emit=emit,
-            )  # fmt: skip
-        except Exception as exc:
-            log.exception("audit failed", extra={"audit_id": audit_id})
-            await emit("failed", {"error": f"{type(exc).__name__}: {str(exc)[:200]}"})
-            from app.models import Audit, AuditStatus
-
-            await session.rollback()
-            row = await session.get(Audit, uuid.UUID(audit_id))
-            if row is not None:
-                row.status = AuditStatus.FAILED
-                row.stats = {**(row.stats or {}), "error": str(exc)[:500]}
-                await session.commit()
-            raise
+        row = await session.get(Audit, uuid.UUID(audit_id))
+        pack = load_pack(row.pack if row is not None else "credit_card")
+        audit = await run_audit(
+            session,
+            audit_id=uuid.UUID(audit_id),
+            llm=jc.llm,
+            fetcher=jc.fetcher,
+            store=jc.store,
+            settings=jc.settings,
+            pack=pack,
+            emit=emit,
+        )
     return audit.status.value
+
+
+async def give_up(jc: JobContext, name: str, args: list[str], error: str) -> None:
+    """A job failed for the last time. For a report: mark it failed with the reason and tell any
+    open progress page, so nobody waits forever."""
+    log.error("job gave up", extra={"job": name, "error": error[:300]})
+    if name != "audit_job" or not args:
+        return
+    audit_id = args[0]
+    async with jc.sessionmaker() as session:
+        row = await session.get(Audit, uuid.UUID(audit_id))
+        if row is not None and row.status not in (AuditStatus.COMPLETE, AuditStatus.PARTIAL):
+            row.status = AuditStatus.FAILED
+            row.stats = {**(row.stats or {}), "error": error[:500]}
+            await session.commit()
+    await jc.bus.publish(audit_id, "failed", {"error": error[:200]})
 
 
 async def ingest_job(jc: JobContext, source_id: str) -> str:
@@ -122,25 +136,27 @@ JOBS = {"audit_job": audit_job, "ingest_job": ingest_job}
 
 
 class Dispatcher:
-    """Enqueue to ARQ if Redis answers; otherwise run in-process (local dev)."""
+    """ARQ when Redis answers; otherwise the durable Postgres queue in this process."""
 
-    def __init__(self, redis: ArqRedis | None, jc: JobContext):
+    def __init__(self, redis: ArqRedis | None, worker: Worker):
         self._redis = redis
-        self._jc = jc
-        self._tasks: set[asyncio.Task[Any]] = set()
+        self.worker = worker
 
     async def enqueue(self, name: str, *args: str) -> str:
-        if self._redis is None:
-            return self._run_in_process(name, *args)
-        try:
-            await self._redis.ping()
-            await self._redis.enqueue_job(name, *args)
-            return "queue"
-        except (RedisError, OSError):
-            return self._run_in_process(name, *args)
+        if self._redis is not None:
+            try:
+                await self._redis.ping()
+                await self._redis.enqueue_job(name, *args)
+                return "queue"
+            except (RedisError, OSError):
+                pass
+        await self.worker.enqueue(name, *args)
+        return "durable"
 
-    def _run_in_process(self, name: str, *args: str) -> str:
-        task = asyncio.create_task(JOBS[name](self._jc, *args))
-        self._tasks.add(task)  # keep a reference so the task isn't garbage-collected
-        task.add_done_callback(self._tasks.discard)
-        return "in_process"
+
+def make_worker(jc: JobContext) -> Worker:
+    return Worker(
+        PgJobStore(jc.sessionmaker),
+        {name: partial(fn, jc) for name, fn in JOBS.items()},
+        on_give_up=partial(give_up, jc),
+    )

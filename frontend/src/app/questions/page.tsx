@@ -1,35 +1,13 @@
-import { ChevronDown, ExternalLink } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 
-import { ASK_THE_BANK, QUESTION_GROUPS, type QuestionLink } from "@/lib/questions";
+import { LinkOut } from "@/components/link-out";
+import { ASK_THE_BANK, QUESTION_GROUPS, RBI_COMPLAINT } from "@/lib/questions";
 
 export const metadata: Metadata = {
   title: "Credit card questions | Ritam",
   description: "Plain answers to common credit card questions, with the RBI rules and where to go next.",
 };
-
-function LinkOut({ link }: { link: QuestionLink }) {
-  const internal = link.href.startsWith("/");
-  if (internal)
-    return (
-      <Link href={link.href} className="font-medium text-ink underline underline-offset-4 hover:no-underline">
-        {link.label}
-      </Link>
-    );
-  return (
-    <a
-      href={link.href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center gap-1 text-ink underline underline-offset-4 hover:no-underline"
-    >
-      {link.label}
-      <ExternalLink aria-hidden className="size-3.5" />
-      <span className="sr-only">(opens in a new tab)</span>
-    </a>
-  );
-}
 
 export default function QuestionsPage() {
   return (
@@ -45,7 +23,7 @@ export default function QuestionsPage() {
           <a
             key={g.title}
             href={`#${slug(g.title)}`}
-            className="rounded-full border border-rule bg-surface px-3 py-1.5 text-sm text-ink hover:border-ink"
+            className="inline-flex min-h-11 items-center rounded-full border border-rule bg-surface px-4 text-sm text-ink hover:border-ink"
           >
             {g.title}
           </a>
@@ -71,7 +49,9 @@ export default function QuestionsPage() {
                   {item.links.length > 0 && (
                     <p className="flex flex-wrap gap-x-5 gap-y-2 pt-1 text-sm">
                       {item.links.map((l) => (
-                        <LinkOut key={l.href + l.label} link={l} />
+                        <LinkOut key={l.href + l.label} href={l.href}>
+                          {l.label}
+                        </LinkOut>
                       ))}
                     </p>
                   )}
@@ -93,7 +73,7 @@ export default function QuestionsPage() {
         </ul>
         <p className="mt-3 text-sm text-mute">
           Use the bank&apos;s app or customer care. If they don&apos;t resolve a complaint within 30 days, you can go to the{" "}
-          <LinkOut link={{ label: "RBI complaint portal", href: "https://cms.rbi.org.in/" }} />.
+          <LinkOut href={RBI_COMPLAINT.href}>{RBI_COMPLAINT.label}</LinkOut>.
         </p>
       </section>
     </main>

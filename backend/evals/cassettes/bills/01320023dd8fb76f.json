@@ -1,0 +1,45 @@
+{
+ "statement_date": "05/10/2026",
+ "payment_due_date": "25/10/2026",
+ "payment_received_date": null,
+ "total_due": "21,977.95",
+ "minimum_due": "1,100.00",
+ "credit_limit": "1,50,000",
+ "payments_total": "2,000.00",
+ "reward_points_opening": null,
+ "reward_points_closing": null,
+ "reward_points_expired": null,
+ "charges": [
+  {
+   "description": "LATE PAYMENT FEE",
+   "amount": "600.00",
+   "kind": "late_payment_fee"
+  },
+  {
+   "description": "IGST @18% ON LATE FEE",
+   "amount": "108.00",
+   "kind": "gst"
+  },
+  {
+   "description": "ANNUAL MEMBERSHIP FEE",
+   "amount": "1,000.00",
+   "kind": "annual_fee"
+  },
+  {
+   "description": "IGST @18% ON ANNUAL FEE",
+   "amount": "180.00",
+   "kind": "gst"
+  },
+  {
+   "description": "FINANCE CHARGES",
+   "amount": "412.50",
+   "kind": "finance_charge"
+  },
+  {
+   "description": "IGST @18% ON FINANCE CHARGES",
+   "amount": "74.25",
+   "kind": "gst"
+  }
+ ],
+ "credits": []
+}

@@ -1,5 +1,6 @@
 """Claim extraction: the LLM proposes claims; code checks every quote and number before keeping one."""
 
+import asyncio
 import logging
 from collections import Counter
 from dataclasses import dataclass, field
@@ -29,6 +30,7 @@ from app.packs import Pack
 
 log = logging.getLogger(__name__)
 MAX_CLAIMS_PER_CHUNK = 80  # cap for models that over-extract
+CHUNK_CONCURRENCY = 3  # parallel LLM calls per document; the router's rate limits still apply
 
 
 class ExtractionCacheBackend(Protocol):
@@ -65,6 +67,7 @@ class ExtractionStats:
     chunks: int = 0
     cached_chunks: int = 0
     failed_chunks: int = 0
+    skipped_chunks: int = 0
     proposed: int = 0
     verified: int = 0
     duplicates: int = 0
@@ -79,6 +82,7 @@ class ExtractionStats:
             "chunks": self.chunks,
             "cached_chunks": self.cached_chunks,
             "failed_chunks": self.failed_chunks,
+            "skipped_chunks": self.skipped_chunks,
             "proposed": self.proposed,
             "verified": self.verified,
             "duplicates": self.duplicates,
@@ -132,6 +136,9 @@ def check_claim(
         return claim
     claim.verified = True
     claim.quote = source_span
+    # Conditions are the model's paraphrase; a number in them that the quote lacks is invented.
+    if claim.conditions and not numbers_supported(claim.conditions, source_span):
+        claim.conditions = None
     claim.page_no, claim.char_start, claim.char_end = (
         match.page_no,
         match.char_start,
@@ -170,30 +177,56 @@ async def extract_document(
     schema = output_schema(pack)
     checked: list[CheckedClaim] = []
 
-    for index, chunk in enumerate(chunk_pages(pages)):
+    chunks = chunk_pages(pages)
+    keywords = {k.lower() for a in pack.attributes for k in a.keywords}
+    results: list[tuple[str, list[dict[str, Any]]] | None] = [None] * len(chunks)
+    pending: list[int] = []
+    for index, chunk in enumerate(chunks):
         stats.chunks += 1
+        text = " ".join(p.text for p in chunk).lower()
+        if not any(k in text for k in keywords):
+            stats.skipped_chunks += 1  # boilerplate: nothing the pack asks about
+            continue
         cached = await cache.get(content_hash, index) if cache else None
         if cached is not None:
-            extractor, raws = cached
+            results[index] = cached
             stats.cached_chunks += 1
         else:
-            try:
-                result = await llm.generate_structured(
-                    task="extract",
-                    system=system_prompt(pack),
-                    prompt=build_prompt(pack, chunk, title=title, kind=kind, product=product),
-                    schema=schema,
-                )
-            except LLMError as exc:
-                stats.failed_chunks += 1
-                stats.errors.append(f"chunk {index}: {str(exc)[:300]}")
-                continue
-            extractor = f"{result.provider}:{result.model}"
-            raws = claim_dicts(result.data)
-            stats.llm_attempts.extend(result.attempts)
-            if cache:
+            pending.append(index)
+
+    gate = asyncio.Semaphore(CHUNK_CONCURRENCY)
+    cache_lock = asyncio.Lock()  # the cache shares one session: write one at a time
+
+    async def call(index: int) -> None:
+        async with gate:
+            outcome = await llm.generate_structured(
+                task="extract",
+                system=system_prompt(pack),
+                prompt=build_prompt(pack, chunks[index], title=title, kind=kind, product=product),
+                schema=schema,
+            )
+        extractor = f"{outcome.provider}:{outcome.model}"
+        raws = claim_dicts(outcome.data)
+        stats.llm_attempts.extend(outcome.attempts)
+        results[index] = (extractor, raws)
+        if cache:
+            # Saved as soon as it arrives: if another part fails and the job retries, this
+            # part's (paid) AI call is not repeated.
+            async with cache_lock:
                 await cache.put(content_hash, index, extractor, raws)
 
+    outcomes = await asyncio.gather(*(call(i) for i in pending), return_exceptions=True)
+    for index, outcome in zip(pending, outcomes, strict=True):
+        if isinstance(outcome, LLMError):
+            stats.failed_chunks += 1
+            stats.errors.append(f"chunk {index}: {str(outcome)[:300]}")
+        elif isinstance(outcome, BaseException):
+            raise outcome
+
+    for result in results:
+        if result is None:
+            continue
+        extractor, raws = result
         if len(raws) > MAX_CLAIMS_PER_CHUNK:
             stats.dropped["over_extraction_cap"] += len(raws) - MAX_CLAIMS_PER_CHUNK
             raws = raws[:MAX_CLAIMS_PER_CHUNK]

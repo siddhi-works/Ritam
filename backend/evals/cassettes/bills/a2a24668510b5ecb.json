@@ -1,0 +1,27 @@
+{
+ "statement_date": "05/10/2026",
+ "payment_due_date": "25/10/2026",
+ "payment_received_date": null,
+ "total_due": "1,708.00",
+ "minimum_due": "100.00",
+ "credit_limit": "1,50,000",
+ "payments_total": "12,000.00",
+ "reward_points_opening": null,
+ "reward_points_closing": null,
+ "reward_points_expired": null,
+ "charges": [
+  {
+   "description": "LATE PAYMENT FEE",
+   "amount": "600.00",
+   "kind": "late_payment_fee",
+   "date": "26/09/2026"
+  },
+  {
+   "description": "IGST @18% ON LATE FEE",
+   "amount": "108.00",
+   "kind": "gst",
+   "date": "26/09/2026"
+  }
+ ],
+ "credits": []
+}
