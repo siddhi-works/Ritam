@@ -78,11 +78,11 @@ const newRow = (mode: Mode = "link"): Row => ({
 const isFilled = (r: Row) =>
   Boolean((r.mode === "link" && r.url.trim()) || (r.mode === "file" && r.file) || ((r.mode === "text" || r.mode === "chat") && r.text.trim()));
 
-export function AuditForm() {
+export function AuditForm({ initialProduct = "", initialQuestion = "" }: { initialProduct?: string; initialQuestion?: string }) {
   const router = useRouter();
   const formId = useId();
-  const [question, setQuestion] = useState("");
-  const [product, setProduct] = useState("");
+  const [question, setQuestion] = useState(initialQuestion);
+  const [product, setProduct] = useState(initialProduct);
   const [ready, setReady] = useState<ReadyReport | null>(null);
   const [claim, setClaim] = useState("");
   const [manual, setManual] = useState<DiscoverOut | null>(null);

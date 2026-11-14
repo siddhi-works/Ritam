@@ -11,6 +11,7 @@ const LINKS = [
   { href: "/#help", label: "Get help" },
   { href: "/statement", label: "Check my bill" },
   { href: "/#start", label: "Get a card report" },
+  { href: "/card-finder", label: "Card finder" },
   { href: "/questions", label: "Questions" },
 ];
 

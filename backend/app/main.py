@@ -11,7 +11,18 @@ from sqlalchemy import String, cast, exists, update
 from sqlalchemy.exc import SQLAlchemyError
 
 from app import jobs
-from app.api import audits, cards, cases, discover, health, internal, sources, statements, triage
+from app.api import (
+    advisor,
+    audits,
+    cards,
+    cases,
+    discover,
+    health,
+    internal,
+    sources,
+    statements,
+    triage,
+)
 from app.config import Settings, get_settings
 from app.db import make_engine, make_sessionmaker
 from app.errors import install_error_handlers
@@ -140,6 +151,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(statements.router)
     app.include_router(cases.router)
     app.include_router(triage.router)
+    app.include_router(advisor.router)
     return app
 
 

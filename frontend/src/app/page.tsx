@@ -23,6 +23,11 @@ const ACTIONS = [
     body: "A wrong fee, a card that won't close, a payment you didn't make. Get the steps, the rule and a complaint letter ready to send.",
   },
   {
+    href: "/card-finder",
+    title: "Find the right card",
+    body: "Tell Ritam how you spend. See which features would pay off for you and what to avoid. No card is pushed on you.",
+  },
+  {
     href: "#start",
     title: "Understand a card",
     body: "Name any Indian credit card. See its real charges and benefits, what changed, and where sources disagree.",
@@ -52,7 +57,12 @@ const TRUST = [
   { title: "India only", body: "Built on RBI's rules for cards issued in India." },
 ];
 
-export default function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ card?: string; q?: string }>;
+}) {
+  const { card, q } = await searchParams;
   return (
     <main>
       <section aria-labelledby="hero-title" className="ledger relative overflow-hidden border-b border-rule">
@@ -107,7 +117,7 @@ export default function Home() {
           <h2 id="actions-title" className="font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
             What you can do with Ritam
           </h2>
-          <ul className="mt-8 grid gap-px overflow-hidden rounded-lg border border-rule bg-rule md:grid-cols-3">
+          <ul className="mt-8 grid gap-px overflow-hidden rounded-lg border border-rule bg-rule sm:grid-cols-2 lg:grid-cols-4">
             {ACTIONS.map((a) => (
               <li key={a.title} className="bg-night">
                 <a href={a.href} className="group block h-full p-6 hover:bg-surface">
@@ -154,7 +164,7 @@ export default function Home() {
             Name the card and what you want to know. Ritam reads the bank&apos;s documents for you, usually in 2 to 5
             minutes.
           </p>
-          <AuditForm />
+          <AuditForm initialProduct={card?.slice(0, 200) ?? ""} initialQuestion={q?.slice(0, 500) ?? ""} />
         </section>
 
         <section id="examples" className="scroll-mt-6 border-t border-rule py-16" aria-labelledby="examples-title">

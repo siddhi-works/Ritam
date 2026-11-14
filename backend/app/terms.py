@@ -41,6 +41,7 @@ class TermVersion:
     source_title: str | None
     claim_id: str
     source_kind: str = ""
+    read_on: date | None = None  # when Ritam last fetched the document
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -221,6 +222,7 @@ async def load_terms(session: AsyncSession, card_name: str) -> dict[str, list[Te
                 source_url=src.url,
                 source_title=src.title,
                 source_kind=src.kind.value,
+                read_on=read_on,
                 claim_id=str(claim.id),
             )
         )

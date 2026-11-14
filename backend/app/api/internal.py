@@ -8,6 +8,8 @@ from typing import Annotated
 import httpx
 from fastapi import APIRouter, Header, HTTPException, Request
 
+from app.refresh import queue_card_reports
+
 router = APIRouter(prefix="/internal", tags=["internal"])
 log = logging.getLogger(__name__)
 
@@ -51,3 +53,23 @@ async def heartbeat(
     if driver is None:
         return {"neo4j": "disabled", "at": at}
     raise HTTPException(502, "Neo4j heartbeat failed")
+
+
+@router.post("/refresh-cards")
+async def refresh_cards(
+    request: Request,
+    only_missing: bool = False,
+    x_internal_token: Annotated[str | None, Header()] = None,
+) -> dict[str, object]:
+    """Queue fresh reports for the cards on the checked list (monthly, or once with only_missing
+    to fill gaps). Refused when today's AI quota is nearly used up."""
+    _authorise(request, x_internal_token)
+    settings = request.app.state.settings
+    budget = getattr(request.app.state, "budget", None)
+    if budget is not None and await budget.live_audits_paused(settings.llm_reserve_fraction):
+        raise HTTPException(503, "AI quota nearly used up today; try again tomorrow.")
+    async with request.app.state.sessionmaker() as session:
+        created = await queue_card_reports(session, only_missing=only_missing)
+    for _, audit_id in created:
+        await request.app.state.dispatcher.enqueue("audit_job", str(audit_id))
+    return {"queued": [{"card": name, "report_id": str(i)} for name, i in created]}

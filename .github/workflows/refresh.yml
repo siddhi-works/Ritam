@@ -1,0 +1,23 @@
+# Monthly: re-read every checked card's official documents, so terms and the card finder's
+# benchmarks stay current. Unchanged documents cost no AI calls; no web search is used.
+name: Refresh card data
+on:
+  schedule:
+    - cron: "30 7 1 * *"   # 13:00 IST on the 1st, after the daily AI quota resets
+  workflow_dispatch:
+    inputs:
+      only_missing:
+        description: "Only cards that have no report yet"
+        type: boolean
+        default: false
+
+jobs:
+  refresh:
+    if: vars.RITAM_API_URL != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - run: |
+          curl -fsS --retry 3 --retry-delay 60 --max-time 180 -X POST \
+            -H "X-Internal-Token: ${{ secrets.RITAM_INTERNAL_TOKEN }}" \
+            "${{ vars.RITAM_API_URL }}/internal/refresh-cards?only_missing=${{ inputs.only_missing || false }}"

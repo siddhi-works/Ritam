@@ -15,7 +15,7 @@ from app.api.deps import _Limiter, get_session
 from app.api.sources import SourceOut
 from app.extract.prompt import scope_key
 from app.ingest.netguard import BlockedURL, check_url
-from app.ingest.service import AUTHORITY_TIER, IngestError, IngestInput, ingest
+from app.ingest.service import IngestError, IngestInput, ingest
 from app.models import (
     Audit,
     AuditSource,
@@ -25,9 +25,9 @@ from app.models import (
     Finding,
     Source,
     SourceKind,
-    SourceStatus,
 )
 from app.packs import load_pack
+from app.refresh import url_source
 
 router = APIRouter(prefix="/api/audits", tags=["audits"])
 TERMINAL = {AuditStatus.COMPLETE, AuditStatus.PARTIAL, AuditStatus.FAILED}
@@ -104,8 +104,7 @@ async def create_audit(request: Request, session: Session, payload: AuditIn) -> 
                 url = await check_url(str(item.url))
             except BlockedURL as exc:
                 raise HTTPException(400, f"{item.url}: {exc}") from exc
-            source = Source(id=uuid.uuid4(), kind=item.kind, url=url, authority_tier=AUTHORITY_TIER[item.kind],
-                            title=(item.title or "").strip() or None, status=SourceStatus.PENDING, meta={})  # fmt: skip
+            source = url_source(url, item.kind, item.title)
             session.add(source)
         elif isinstance(item, TextIn):
             inp = IngestInput(body=item.text.encode("utf-8"), kind=item.kind, title=item.title,
